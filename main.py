@@ -136,40 +136,95 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
 
 @cli.command()
 @click.argument('database', type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path))
+@click.option('--scheme', '-s', required=True,
+              help='Naming scheme with metadata placeholders (e.g., "{date}_{camera_model}_{basename}")')
+@click.option('--sequence-digits', type=click.IntRange(1, 6), default=3,
+              help='Number of digits for sequence numbers when basenames would be identical (1-6, default: 3)')
 @click.option('--dry-run', is_flag=True, default=False,
               help='Show what would be renamed without actually renaming files')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enable verbose logging')
-def rename(database: Path, dry_run: bool, verbose: bool):
+def rename(database: Path, scheme: str, sequence_digits: int, dry_run: bool, verbose: bool):
     """
     Rename photo files based on metadata and grouping rules.
     
-    Uses the photo DATABASE to rename files according to configurable patterns
+    Uses the photo DATABASE to rename files according to the specified SCHEME
     based on metadata like dates, camera info, and group relationships.
     
     DATABASE: Path to the JSON database file created by the build command
+    
+    NAMING SCHEME PLACEHOLDERS:
+    
+    \b
+    Date/Time:
+      {date}          - Date in YYYY-MM-DD format
+      {datetime}      - Date and time in YYYY-MM-DD_HH-MM-SS format
+      {year}          - 4-digit year
+      {month}         - 2-digit month
+      {day}           - 2-digit day
+      {hour}          - 2-digit hour (24h format)
+      {minute}        - 2-digit minute
+      {second}        - 2-digit second
+    
+    \b
+    Camera Info:
+      {camera_make}   - Camera manufacturer
+      {camera_model}  - Camera model
+      {lens_model}    - Lens model
+      {serial_number} - Camera serial number
+    
+    \b
+    Technical Info:
+      {iso}           - ISO value
+      {aperture}      - Aperture (f-stop)
+      {focal_length}  - Focal length in mm
+      {shutter_speed} - Shutter speed
+    
+    \b
+    File Info:
+      {basename}      - Original basename (without extension)
+      {sequence}      - Auto-generated sequence number for duplicates
+    
+    \b
+    Examples:
+      "{date}_{camera_model}_{basename}"
+      "{datetime}_{iso}_{aperture}"
+      "{year}/{month}/{camera_make}_{sequence}"
     """
     setup_logging(verbose)
     logger = logging.getLogger(__name__)
     
     logger.info("Starting photo rename process")
     logger.info(f"Database file: {database}")
+    logger.info(f"Naming scheme: {scheme}")
+    logger.info(f"Sequence digits: {sequence_digits}")
     logger.info(f"Dry run mode: {dry_run}")
     
     try:
         # TODO: Implement rename functionality
         # This will include:
         # - Loading the photo database from JSON
+        # - Parsing the naming scheme and validating placeholders
         # - Applying renaming rules based on metadata
+        # - Generating sequence numbers for duplicate basenames
         # - Handling conflicts and ensuring unique names
         # - Updating file paths in groups
         # - Saving the updated database
         
         click.echo("🚧 Rename functionality is not yet implemented.")
         click.echo("This command will be used to rename photo files based on metadata and grouping rules.")
+        click.echo(f"Naming scheme: {scheme}")
+        click.echo(f"Sequence number format: {{sequence:0{sequence_digits}d}}")
         
         if dry_run:
             click.echo("This would run in dry-run mode (no actual file changes).")
+        
+        # Show available placeholders for reference
+        click.echo("\nAvailable placeholders:")
+        click.echo("  Date/Time: {date}, {datetime}, {year}, {month}, {day}, {hour}, {minute}, {second}")
+        click.echo("  Camera: {camera_make}, {camera_model}, {lens_model}, {serial_number}")
+        click.echo("  Technical: {iso}, {aperture}, {focal_length}, {shutter_speed}")
+        click.echo("  File: {basename}, {sequence}")
         
         logger.info("Rename command placeholder executed")
         
