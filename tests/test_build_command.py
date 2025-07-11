@@ -64,6 +64,13 @@ class TestBuildCommand(unittest.TestCase):
         self.assertIn("groups", data)
         self.assertEqual(data["metadata"]["total_photos"], 5)
         self.assertEqual(data["metadata"]["total_groups"], 3)
+        
+        # Verify that groups have metadata
+        for group_name, group_data in data["groups"].items():
+            self.assertIn("metadata", group_data)
+            self.assertIn("camera", group_data["metadata"])
+            self.assertIn("dates", group_data["metadata"])
+            self.assertIn("technical", group_data["metadata"])
     
     def test_build_command_nonexistent_directory(self):
         """Test build command with non-existent directory."""

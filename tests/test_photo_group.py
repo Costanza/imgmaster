@@ -260,6 +260,169 @@ class TestPhotoGroup(unittest.TestCase):
                 group, _ = self.create_photo_group_with_files("test", extensions)
                 self.assertFalse(group.is_valid, f"Group should be invalid: {description}")
                 self.assertTrue(group.has_only_supplementary_files)
+    
+    def test_metadata_extraction_empty_group(self):
+        """Test metadata extraction from an empty group."""
+        group = PhotoGroup("empty")
+        metadata = group.extract_metadata()
+        
+        # Should return empty metadata
+        self.assertTrue(metadata.is_empty())
+        self.assertTrue(metadata.camera.is_empty())
+        self.assertTrue(metadata.dates.is_empty())
+        self.assertTrue(metadata.technical.is_empty())
+
+    @patch('models.photo_group.MetadataExtractor')
+    def test_metadata_extraction_with_photos(self, mock_extractor_class):
+        """Test metadata extraction from a group with photos."""
+        # Mock metadata extractor
+        mock_extractor = MagicMock()
+        mock_extractor_class.return_value = mock_extractor
+        
+        # Mock extracted metadata
+        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+        from datetime import datetime
+        
+        mock_metadata = PhotoMetadata(
+            camera=CameraInfo(make="Canon", model="EOS R5"),
+            dates=DateInfo(date_taken=datetime(2024, 1, 1, 12, 0, 0)),
+            technical=TechnicalInfo(iso=100, aperture=2.8),
+            source_file="test.jpg"
+        )
+        mock_extractor.extract_from_photo.return_value = mock_metadata
+        
+        # Create group with test photo
+        group, photos = self.create_photo_group_with_files("test", [".jpg"])
+        
+        # Extract metadata
+        metadata = group.extract_metadata()
+        
+        # Verify metadata was extracted
+        self.assertFalse(metadata.is_empty())
+        self.assertEqual(metadata.camera.make, "Canon")
+        self.assertEqual(metadata.camera.model, "EOS R5")
+        self.assertEqual(metadata.technical.iso, 100)
+        self.assertEqual(metadata.technical.aperture, 2.8)
+
+    @patch('models.photo_group.MetadataExtractor')
+    def test_metadata_extraction_with_sidecar(self, mock_extractor_class):
+        """Test metadata extraction from a group with sidecar files."""
+        # Mock metadata extractor
+        mock_extractor = MagicMock()
+        mock_extractor_class.return_value = mock_extractor
+        
+        # Mock extracted metadata
+        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+        
+        mock_photo_metadata = PhotoMetadata(
+            camera=CameraInfo(make="Canon", model="EOS R5"),
+            dates=DateInfo(),
+            technical=TechnicalInfo(iso=100),
+            source_file="test.jpg"
+        )
+        
+        mock_sidecar_metadata = PhotoMetadata(
+            camera=CameraInfo(lens_model="RF 24-70mm f/2.8L IS USM"),
+            dates=DateInfo(),
+            technical=TechnicalInfo(aperture=2.8),
+            source_file="test.xmp"
+        )
+        
+        mock_extractor.extract_from_photo.return_value = mock_photo_metadata
+        mock_extractor.extract_from_xmp.return_value = mock_sidecar_metadata
+        
+        # Create group with photo and sidecar
+        group, photos = self.create_photo_group_with_files("test", [".jpg", ".xmp"])
+        
+        # Extract metadata
+        metadata = group.extract_metadata()
+        
+        # Verify aggregated metadata
+        self.assertEqual(metadata.camera.make, "Canon")
+        self.assertEqual(metadata.camera.model, "EOS R5")
+        self.assertEqual(metadata.camera.lens_model, "RF 24-70mm f/2.8L IS USM")
+        self.assertEqual(metadata.technical.iso, 100)
+        self.assertEqual(metadata.technical.aperture, 2.8)
+
+    def test_metadata_cache_invalidation(self):
+        """Test that metadata cache is invalidated when photos are added/removed."""
+        group, photos = self.create_photo_group_with_files("test", [".jpg"])
+        
+        # Extract metadata to cache it
+        with patch.object(group, '_metadata_extractor') as mock_extractor:
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            mock_metadata = PhotoMetadata(
+                camera=CameraInfo(),
+                dates=DateInfo(),
+                technical=TechnicalInfo(),
+                source_file="test.jpg"
+            )
+            mock_extractor.extract_from_photo.return_value = mock_metadata
+            mock_extractor.extract_from_xmp.return_value = mock_metadata
+            
+            # First extraction
+            metadata1 = group.extract_metadata()
+            self.assertEqual(mock_extractor.extract_from_photo.call_count, 1)
+            
+            # Second extraction should use cache (no additional calls)
+            metadata2 = group.extract_metadata()
+            self.assertEqual(mock_extractor.extract_from_photo.call_count, 1)
+            self.assertIs(metadata1, metadata2)  # Same object reference
+            
+            # Add a photo - should invalidate cache
+            new_photo_path = self.create_temp_file("test.cr2")
+            new_photo = Photo(new_photo_path)
+            group.add_photo(new_photo)
+            
+            # Next extraction should re-extract
+            metadata3 = group.extract_metadata()
+            self.assertEqual(mock_extractor.extract_from_photo.call_count, 3)  # 2 photos
+
+    def test_extract_all_metadata_manager(self):
+        """Test that PhotoGroupManager can extract metadata for all groups."""
+        with patch('models.photo_group.MetadataExtractor') as mock_extractor_class:
+            mock_extractor = MagicMock()
+            mock_extractor_class.return_value = mock_extractor
+            
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            mock_metadata = PhotoMetadata(
+                camera=CameraInfo(),
+                dates=DateInfo(),
+                technical=TechnicalInfo()
+            )
+            mock_extractor.extract_from_photo.return_value = mock_metadata
+            mock_extractor.extract_from_xmp.return_value = mock_metadata
+            
+            # Create test photos using the helper method
+            group1_photos = []
+            group2_photos = []
+            
+            # Create group1 files
+            for ext in [".jpg", ".xmp"]:
+                filename = f"group1{ext}"
+                file_path = self.create_temp_file(filename)
+                photo = Photo(file_path)
+                group1_photos.append(photo)
+            
+            # Create group2 files
+            for ext in [".nef", ".jpg"]:
+                filename = f"group2{ext}"
+                file_path = self.create_temp_file(filename)
+                photo = Photo(file_path)
+                group2_photos.append(photo)
+            
+            # Create a manager and add photos (PhotoGroups will use mocked extractor)
+            manager = PhotoGroupManager()
+            for photo in group1_photos + group2_photos:
+                manager.add_photo(photo)
+            
+            # Extract metadata for all groups
+            manager.extract_all_metadata()
+            
+            # Verify extraction was called for photos
+            self.assertTrue(mock_extractor.extract_from_photo.called)
+            # Verify the extractor was instantiated
+            self.assertTrue(mock_extractor_class.called)
 
 
 class TestPhotoGroupManager(unittest.TestCase):
@@ -747,6 +910,13 @@ class TestPhotoGroupManagerValidation(unittest.TestCase):
                 f.write("test content")
             photos.append(Photo(file_path))
         return photos
+
+    def create_temp_file(self, filename: str) -> str:
+        """Create a temporary file for testing."""
+        file_path = os.path.join(self.temp_dir, filename)
+        with open(file_path, 'w') as f:
+            f.write("test content")
+        return file_path
     
     def test_valid_and_invalid_groups(self):
         """Test identification of valid and invalid groups."""
@@ -835,3 +1005,44 @@ class TestPhotoGroupManagerValidation(unittest.TestCase):
         invalid_group = groups["invalid"]
         self.assertFalse(invalid_group["is_valid"])
         self.assertTrue(invalid_group["has_only_supplementary_files"])
+    
+    def test_to_dict_includes_metadata(self):
+        """Test that to_dict includes metadata for each group."""
+        with patch('models.photo_group.MetadataExtractor') as mock_extractor_class:
+            mock_extractor = MagicMock()
+            mock_extractor_class.return_value = mock_extractor
+            
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            mock_metadata = PhotoMetadata(
+                camera=CameraInfo(make="Test Camera"),
+                dates=DateInfo(),
+                technical=TechnicalInfo(iso=200),
+                source_file="test.jpg"
+            )
+            mock_extractor.extract_from_photo.return_value = mock_metadata
+            
+            # Create test photo after setting up the mock
+            photo_path = self.create_temp_file("test.jpg")
+            photo = Photo(photo_path)
+            self.manager.add_photo(photo)
+            
+            # Convert to dict
+            data = self.manager.to_dict()
+            
+            # Verify metadata is included
+            self.assertIn("groups", data)
+            self.assertIn("test", data["groups"])
+            
+            group_data = data["groups"]["test"]
+            self.assertIn("metadata", group_data)
+            
+            metadata = group_data["metadata"]
+            self.assertIn("camera", metadata)
+            self.assertIn("dates", metadata)
+            self.assertIn("technical", metadata)
+            self.assertEqual(metadata["camera"]["make"], "Test Camera")
+            self.assertEqual(metadata["technical"]["iso"], 200)
+
+
+if __name__ == '__main__':
+    unittest.main()

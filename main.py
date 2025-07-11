@@ -109,6 +109,10 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
             if len(multi_format_groups) > 5:
                 click.echo(f"  ... and {len(multi_format_groups) - 5} more")
         
+        # Extract metadata for all groups
+        click.echo("\nExtracting metadata from photos...")
+        manager.extract_all_metadata()
+        
         # Save to JSON
         click.echo(f"\nSaving database to: {output}")
         manager.save_to_json(output)
