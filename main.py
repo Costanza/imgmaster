@@ -145,9 +145,11 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
               help='Show what would be renamed without actually renaming files')
 @click.option('--copy', is_flag=True, default=False,
               help='Copy files instead of moving them (leaves originals in place)')
+@click.option('--skip-invalid/--include-invalid', default=True,
+              help='Skip invalid photo groups (containing only sidecar/live photos). Default: skip invalid groups')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enable verbose logging')
-def rename(database: Path, destination: Path, scheme: str, sequence_digits: int, dry_run: bool, copy: bool, verbose: bool):
+def rename(database: Path, destination: Path, scheme: str, sequence_digits: int, dry_run: bool, copy: bool, skip_invalid: bool, verbose: bool):
     """
     Rename photo files based on metadata and grouping rules.
     
@@ -209,6 +211,7 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
     logger.info(f"Sequence digits: {sequence_digits}")
     logger.info(f"Dry run mode: {dry_run}")
     logger.info(f"Copy mode: {copy}")
+    logger.info(f"Skip invalid groups: {skip_invalid}")
     
     try:
         # Load the photo database
@@ -228,12 +231,23 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
         # Validate the naming scheme
         _validate_naming_scheme(scheme)
         
-        # Process all groups and generate new names
-        click.echo(f"\nProcessing {manager.total_groups} photo groups...")
+        # Determine which groups to process
+        if skip_invalid:
+            groups_to_process = manager.get_valid_groups()
+            invalid_groups_count = manager.total_invalid_groups
+        else:
+            groups_to_process = manager.get_all_groups()
+            invalid_groups_count = 0
+        
+        # Process groups and generate new names
+        click.echo(f"\nProcessing {len(groups_to_process)} photo groups...")
+        if skip_invalid and invalid_groups_count > 0:
+            click.echo(f"Skipping {invalid_groups_count} invalid photo groups (containing only sidecar/live photos)")
+        
         rename_operations = []
         
         # First pass: generate base filenames without sequences
-        for group in manager.get_all_groups():
+        for group in groups_to_process:
             # Extract metadata for the group
             group_metadata = group.extract_metadata()
             
