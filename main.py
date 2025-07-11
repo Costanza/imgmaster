@@ -225,18 +225,16 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
         # Process all groups and generate new names
         click.echo(f"\nProcessing {manager.total_groups} photo groups...")
         rename_operations = []
-        basename_counter = defaultdict(int)
         
+        # First pass: generate base filenames without sequences
         for group in manager.get_all_groups():
             # Extract metadata for the group
             group_metadata = group.extract_metadata()
             
             # Process each photo in the group
             for photo in group.get_photos():
-                # Generate new name based on scheme and metadata
-                new_name = _generate_new_filename(
-                    scheme, photo, group_metadata, basename_counter, sequence_digits
-                )
+                # Generate new name based on scheme and metadata (without sequence)
+                new_name = _generate_base_filename(scheme, photo, group_metadata)
                 
                 # Calculate paths - handle subdirectories in the scheme
                 old_path = photo.absolute_path
@@ -246,21 +244,22 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
                     # Has subdirectories
                     subdir_path = Path(*name_parts[:-1])
                     filename = name_parts[-1]
-                    new_path = destination / subdir_path / f"{filename}{photo.extension}"
+                    base_new_path = destination / subdir_path / filename
                 else:
                     # No subdirectories
-                    new_path = destination / f"{new_name}{photo.extension}"
-                
-                # Ensure directory exists for new path
-                new_dir = new_path.parent
+                    base_new_path = destination / new_name
                 
                 rename_operations.append({
                     'group': group,
                     'photo': photo,
                     'old_path': old_path,
-                    'new_path': new_path,
-                    'new_dir': new_dir
+                    'base_new_path': base_new_path,  # Without extension and without sequence
+                    'base_filename': new_name,  # The complete relative path/filename without extension
+                    'destination': destination,  # Store destination for path calculations
                 })
+        
+        # Second pass: detect collisions and apply sequences
+        _apply_sequences_to_operations(rename_operations, sequence_digits)
         
         # Show summary
         click.echo(f"\nRename Summary:")
@@ -343,8 +342,8 @@ def _validate_naming_scheme(scheme: str) -> None:
         raise ValueError(f"Invalid placeholders: {', '.join(invalid_placeholders)}")
 
 
-def _generate_new_filename(scheme: str, photo, group_metadata, basename_counter: dict, sequence_digits: int) -> str:
-    """Generate a new filename based on the scheme and metadata."""
+def _generate_base_filename(scheme: str, photo, group_metadata) -> str:
+    """Generate a base filename based on the scheme and metadata (without sequence numbers)."""
     import re
     from datetime import datetime
     
@@ -418,16 +417,9 @@ def _generate_new_filename(scheme: str, photo, group_metadata, basename_counter:
     # File info replacements
     replacements['{basename}'] = photo.basename
     
-    # Apply all replacements except sequence
+    # Apply all replacements (skip sequence for now)
     for placeholder, value in replacements.items():
         new_name = new_name.replace(placeholder, str(value))
-    
-    # Handle sequence number
-    if '{sequence}' in new_name:
-        basename_counter[new_name] += 1
-        sequence_num = basename_counter[new_name]
-        sequence_str = f"{sequence_num:0{sequence_digits}d}"
-        new_name = new_name.replace('{sequence}', sequence_str)
     
     # Clean up the filename - handle directory separators properly
     if '/' in new_name:
@@ -475,6 +467,95 @@ def _update_photo_with_history(photo, old_path: Path, new_path: Path) -> None:
     
     # Update the photo's path
     photo.absolute_path = new_path
+
+
+def _apply_sequences_to_operations(rename_operations: list, sequence_digits: int) -> None:
+    """Apply sequence numbers to rename operations where filenames would collide."""
+    from collections import defaultdict
+    
+    # Check if any operation has {sequence} placeholder in the base filename
+    has_sequence_placeholder = any('{sequence}' in op['base_filename'] for op in rename_operations)
+    
+    if has_sequence_placeholder:
+        # Handle explicit {sequence} placeholders
+        _apply_explicit_sequences(rename_operations, sequence_digits)
+    else:
+        # Handle automatic collision detection
+        _apply_collision_sequences(rename_operations, sequence_digits)
+
+
+def _apply_explicit_sequences(rename_operations: list, sequence_digits: int) -> None:
+    """Apply sequences for operations that have explicit {sequence} placeholders."""
+    from collections import defaultdict
+    
+    # Group operations by their base filename pattern (with {sequence} still in place)
+    pattern_groups = defaultdict(list)
+    
+    for operation in rename_operations:
+        base_filename = operation['base_filename']
+        pattern_groups[base_filename].append(operation)
+    
+    # Apply sequences to each pattern group
+    for pattern, operations in pattern_groups.items():
+        for i, operation in enumerate(operations, 1):
+            # Replace {sequence} with the actual sequence number
+            sequence_str = f"{i:0{sequence_digits}d}"
+            final_filename = pattern.replace('{sequence}', sequence_str)
+            
+            # Calculate final paths using the stored destination
+            destination = operation['destination']
+            name_parts = final_filename.split('/')
+            if len(name_parts) > 1:
+                # Has subdirectories
+                subdir_path = Path(*name_parts[:-1])
+                filename = name_parts[-1]
+                final_path = destination / subdir_path / f"{filename}{operation['photo'].extension}"
+            else:
+                # No subdirectories
+                final_path = destination / f"{final_filename}{operation['photo'].extension}"
+            
+            operation['new_path'] = final_path
+            operation['new_dir'] = final_path.parent
+
+
+def _apply_collision_sequences(rename_operations: list, sequence_digits: int) -> None:
+    """Apply sequences for operations that would collide (automatic collision detection)."""
+    from collections import defaultdict
+    
+    # Group operations by their final filename (including extension and full path)
+    filename_groups = defaultdict(list)
+    
+    for operation in rename_operations:
+        # Create the full filename with extension
+        base_path = operation['base_new_path']
+        extension = operation['photo'].extension
+        full_path = f"{base_path}{extension}"
+        
+        filename_groups[str(full_path)].append(operation)
+    
+    # Process each group of files that would have the same name
+    for full_path, operations in filename_groups.items():
+        if len(operations) == 1:
+            # No collision - use the base path as-is
+            operation = operations[0]
+            base_path = operation['base_new_path']
+            extension = operation['photo'].extension
+            final_path = Path(f"{base_path}{extension}")
+            
+            operation['new_path'] = final_path
+            operation['new_dir'] = final_path.parent
+        else:
+            # Collision detected - apply sequences
+            for i, operation in enumerate(operations, 1):
+                base_path = operation['base_new_path']
+                extension = operation['photo'].extension
+                
+                # Insert sequence number before the extension
+                sequence_str = f"_{i:0{sequence_digits}d}"
+                final_path = Path(f"{base_path}{sequence_str}{extension}")
+                
+                operation['new_path'] = final_path
+                operation['new_dir'] = final_path.parent
 
 
 if __name__ == "__main__":

@@ -1,0 +1,192 @@
+{
+  "metadata": {
+    "total_groups": 3,
+    "total_valid_groups": 3,
+    "total_invalid_groups": 0,
+    "total_photos": 3,
+    "created_by": "imgmaster",
+    "version": "1.0"
+  },
+  "groups": {
+    "img3": {
+      "basename": "img3",
+      "count": 1,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
+      "formats": {
+        "jpeg": true,
+        "raw": false,
+        "heic": false,
+        "live_photo": false,
+        "sidecar": false,
+        "other": false
+      },
+      "metadata": {
+        "camera": {
+          "make": null,
+          "make_source": null,
+          "model": null,
+          "model_source": null,
+          "lens_model": null,
+          "lens_model_source": null,
+          "serial_number": null,
+          "serial_number_source": null
+        },
+        "dates": {},
+        "technical": {
+          "iso": null,
+          "iso_source": null,
+          "aperture": null,
+          "aperture_source": null,
+          "shutter_speed": null,
+          "shutter_speed_source": null,
+          "focal_length": null,
+          "focal_length_source": null,
+          "focal_length_35mm": null,
+          "focal_length_35mm_source": null,
+          "flash_fired": null,
+          "flash_fired_source": null
+        },
+        "source_file": "group:img3"
+      },
+      "photos": [
+        {
+          "filename": "img3.jpg",
+          "basename": "img3",
+          "extension": ".jpg",
+          "absolute_path": "test_output3/2025/07/photo_01.jpg",
+          "format_classification": "jpeg",
+          "size_bytes": 0,
+          "size_mb": 0.0,
+          "history": [
+            {
+              "path": "/Users/chris/Development/python/imgmaster/test_sequences2/img3.jpg",
+              "timestamp": "2025-07-11T12:09:04.242904",
+              "operation": "rename"
+            }
+          ]
+        }
+      ]
+    },
+    "img2": {
+      "basename": "img2",
+      "count": 1,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
+      "formats": {
+        "jpeg": true,
+        "raw": false,
+        "heic": false,
+        "live_photo": false,
+        "sidecar": false,
+        "other": false
+      },
+      "metadata": {
+        "camera": {
+          "make": null,
+          "make_source": null,
+          "model": null,
+          "model_source": null,
+          "lens_model": null,
+          "lens_model_source": null,
+          "serial_number": null,
+          "serial_number_source": null
+        },
+        "dates": {},
+        "technical": {
+          "iso": null,
+          "iso_source": null,
+          "aperture": null,
+          "aperture_source": null,
+          "shutter_speed": null,
+          "shutter_speed_source": null,
+          "focal_length": null,
+          "focal_length_source": null,
+          "focal_length_35mm": null,
+          "focal_length_35mm_source": null,
+          "flash_fired": null,
+          "flash_fired_source": null
+        },
+        "source_file": "group:img2"
+      },
+      "photos": [
+        {
+          "filename": "img2.jpg",
+          "basename": "img2",
+          "extension": ".jpg",
+          "absolute_path": "test_output3/2025/07/photo_02.jpg",
+          "format_classification": "jpeg",
+          "size_bytes": 0,
+          "size_mb": 0.0,
+          "history": [
+            {
+              "path": "/Users/chris/Development/python/imgmaster/test_sequences2/img2.jpg",
+              "timestamp": "2025-07-11T12:09:04.242976",
+              "operation": "rename"
+            }
+          ]
+        }
+      ]
+    },
+    "img1": {
+      "basename": "img1",
+      "count": 1,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
+      "formats": {
+        "jpeg": true,
+        "raw": false,
+        "heic": false,
+        "live_photo": false,
+        "sidecar": false,
+        "other": false
+      },
+      "metadata": {
+        "camera": {
+          "make": null,
+          "make_source": null,
+          "model": null,
+          "model_source": null,
+          "lens_model": null,
+          "lens_model_source": null,
+          "serial_number": null,
+          "serial_number_source": null
+        },
+        "dates": {},
+        "technical": {
+          "iso": null,
+          "iso_source": null,
+          "aperture": null,
+          "aperture_source": null,
+          "shutter_speed": null,
+          "shutter_speed_source": null,
+          "focal_length": null,
+          "focal_length_source": null,
+          "focal_length_35mm": null,
+          "focal_length_35mm_source": null,
+          "flash_fired": null,
+          "flash_fired_source": null
+        },
+        "source_file": "group:img1"
+      },
+      "photos": [
+        {
+          "filename": "img1.jpg",
+          "basename": "img1",
+          "extension": ".jpg",
+          "absolute_path": "test_output3/2025/07/photo_03.jpg",
+          "format_classification": "jpeg",
+          "size_bytes": 0,
+          "size_mb": 0.0,
+          "history": [
+            {
+              "path": "/Users/chris/Development/python/imgmaster/test_sequences2/img1.jpg",
+              "timestamp": "2025-07-11T12:09:04.243035",
+              "operation": "rename"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
