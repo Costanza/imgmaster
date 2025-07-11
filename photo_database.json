@@ -54,10 +54,11 @@
           "filename": "test.jpg",
           "basename": "test",
           "extension": ".jpg",
-          "absolute_path": "/private/var/folders/dc/nhbgh8r94_93m9v7tzl55qgc0000gn/T/tmpf33ihs2y/test.jpg",
+          "absolute_path": "/private/var/folders/dc/nhbgh8r94_93m9v7tzl55qgc0000gn/T/tmprgqupc0r/test.jpg",
           "format_classification": "jpeg",
           "size_bytes": 18,
-          "size_mb": 0.0
+          "size_mb": 0.0,
+          "history": []
         }
       ]
     }

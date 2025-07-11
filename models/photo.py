@@ -153,6 +153,9 @@ class Photo:
         # Get format classification
         self.format_classification = self.get_format_classification(self.extension)
         
+        # Initialize history tracking
+        self.history = []
+        
         # Validate it's an image file
         self._validate_image_format()
     

@@ -704,7 +704,8 @@ class PhotoGroupManager:
                     "absolute_path": str(photo.absolute_path),
                     "format_classification": photo.format_classification,
                     "size_bytes": photo.size_bytes,
-                    "size_mb": photo.size_mb
+                    "size_mb": photo.size_mb,
+                    "history": getattr(photo, 'history', [])
                 }
                 group_data["photos"].append(photo_data)
             
@@ -779,6 +780,9 @@ class PhotoGroupManager:
                     photo_path = Path(photo_data["absolute_path"])
                     if photo_path.exists():
                         photo = Photo(photo_path)
+                        # Restore history if available
+                        if "history" in photo_data:
+                            photo.history = photo_data["history"]
                         manager.add_photo(photo)
                     else:
                         logger.warning(f"Photo file not found: {photo_path}")
