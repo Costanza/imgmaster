@@ -41,6 +41,27 @@ class CameraInfo:
 
 
 @dataclass
+class CameraInfoWithSource:
+    """Camera information with source file tracking."""
+    make: Optional[str] = None
+    make_source: Optional[str] = None
+    model: Optional[str] = None
+    model_source: Optional[str] = None
+    lens_model: Optional[str] = None
+    lens_model_source: Optional[str] = None
+    serial_number: Optional[str] = None
+    serial_number_source: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return asdict(self)
+    
+    def is_empty(self) -> bool:
+        """Check if camera info is empty."""
+        return not any([self.make, self.model, self.lens_model, self.serial_number])
+
+
+@dataclass
 class DateInfo:
     """Date information extracted from metadata."""
     date_taken: Optional[datetime] = None
@@ -56,6 +77,38 @@ class DateInfo:
             result['date_modified'] = self.date_modified.isoformat()
         if self.date_digitized:
             result['date_digitized'] = self.date_digitized.isoformat()
+        return result
+    
+    def is_empty(self) -> bool:
+        """Check if date info is empty."""
+        return not any([self.date_taken, self.date_modified, self.date_digitized])
+
+
+@dataclass
+class DateInfoWithSource:
+    """Date information with source file tracking."""
+    date_taken: Optional[datetime] = None
+    date_taken_source: Optional[str] = None
+    date_modified: Optional[datetime] = None
+    date_modified_source: Optional[str] = None
+    date_digitized: Optional[datetime] = None
+    date_digitized_source: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        result = {}
+        if self.date_taken:
+            result['date_taken'] = self.date_taken.isoformat()
+            if self.date_taken_source:
+                result['date_taken_source'] = self.date_taken_source
+        if self.date_modified:
+            result['date_modified'] = self.date_modified.isoformat()
+            if self.date_modified_source:
+                result['date_modified_source'] = self.date_modified_source
+        if self.date_digitized:
+            result['date_digitized'] = self.date_digitized.isoformat()
+            if self.date_digitized_source:
+                result['date_digitized_source'] = self.date_digitized_source
         return result
     
     def is_empty(self) -> bool:
@@ -86,11 +139,61 @@ class TechnicalInfo:
 
 
 @dataclass
+class TechnicalInfoWithSource:
+    """Technical camera settings with source file tracking."""
+    iso: Optional[int] = None
+    iso_source: Optional[str] = None
+    aperture: Optional[float] = None
+    aperture_source: Optional[str] = None
+    shutter_speed: Optional[str] = None
+    shutter_speed_source: Optional[str] = None
+    focal_length: Optional[float] = None
+    focal_length_source: Optional[str] = None
+    focal_length_35mm: Optional[int] = None
+    focal_length_35mm_source: Optional[str] = None
+    flash_fired: Optional[bool] = None
+    flash_fired_source: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return asdict(self)
+    
+    def is_empty(self) -> bool:
+        """Check if technical info is empty."""
+        return not any([
+            self.iso, self.aperture, self.shutter_speed, 
+            self.focal_length, self.focal_length_35mm, self.flash_fired
+        ])
+
+
+@dataclass
 class PhotoMetadata:
     """Complete metadata for a photo."""
     camera: CameraInfo
     dates: DateInfo
     technical: TechnicalInfo
+    source_file: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            'camera': self.camera.to_dict(),
+            'dates': self.dates.to_dict(),
+            'technical': self.technical.to_dict(),
+            'source_file': self.source_file
+        }
+    
+    def is_empty(self) -> bool:
+        """Check if metadata is empty."""
+        return self.camera.is_empty() and self.dates.is_empty() and self.technical.is_empty()
+
+
+@dataclass
+class PhotoMetadataWithSource:
+    """Complete metadata for a photo group with source file tracking."""
+    camera: CameraInfoWithSource
+    dates: DateInfoWithSource
+    technical: TechnicalInfoWithSource
     source_file: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:

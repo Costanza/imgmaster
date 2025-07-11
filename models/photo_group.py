@@ -5,7 +5,12 @@ from collections import defaultdict
 from pathlib import Path
 
 from .photo import Photo
-from .metadata import MetadataExtractor, PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+from .metadata import (
+    MetadataExtractor, PhotoMetadata, PhotoMetadataWithSource,
+    CameraInfo, CameraInfoWithSource, 
+    DateInfo, DateInfoWithSource,
+    TechnicalInfo, TechnicalInfoWithSource
+)
 
 
 class PhotoGroup:
@@ -25,7 +30,7 @@ class PhotoGroup:
         """
         self.basename = basename
         self._photos: Dict[str, Photo] = {}  # extension -> Photo mapping
-        self._metadata_cache: Optional[PhotoMetadata] = None  # Cached aggregated metadata
+        self._metadata_cache: Optional[PhotoMetadataWithSource] = None  # Cached aggregated metadata
         self._metadata_extractor = MetadataExtractor()
         
     def add_photo(self, photo: Photo) -> None:
@@ -207,7 +212,7 @@ class PhotoGroup:
         """
         return not self.is_valid and (self.has_sidecar or self.has_live_photo)
 
-    def extract_metadata(self, force_refresh: bool = False) -> PhotoMetadata:
+    def extract_metadata(self, force_refresh: bool = False) -> PhotoMetadataWithSource:
         """
         Extract and aggregate metadata from all photos in this group.
         
@@ -215,7 +220,7 @@ class PhotoGroup:
             force_refresh: If True, re-extract metadata even if cached
             
         Returns:
-            PhotoMetadata object with aggregated information from all photos
+            PhotoMetadataWithSource object with aggregated information from all photos
         """
         logger = logging.getLogger(__name__)
         
@@ -223,12 +228,12 @@ class PhotoGroup:
         if self._metadata_cache and not force_refresh:
             return self._metadata_cache
             
-        # Initialize aggregated metadata
-        aggregated_camera = CameraInfo()
-        aggregated_dates = DateInfo()
-        aggregated_technical = TechnicalInfo()
+        # Initialize aggregated metadata with source tracking
+        aggregated_camera = CameraInfoWithSource()
+        aggregated_dates = DateInfoWithSource()
+        aggregated_technical = TechnicalInfoWithSource()
         
-        # Get photos that can contain metadata (exclude sidecar files initially)
+        # Get photos that can contain metadata (prioritize non-sidecar files)
         photo_files = [photo for photo in self._photos.values() 
                       if photo.format_classification not in ['sidecar']]
         
@@ -238,33 +243,33 @@ class PhotoGroup:
         
         metadata_sources = []
         
-        # Extract metadata from photo files first
+        # Extract metadata from photo files first (higher priority)
         for photo in photo_files:
             try:
                 metadata = self._metadata_extractor.extract_from_photo(photo.absolute_path)
                 if not metadata.is_empty():
-                    metadata_sources.append(metadata)
+                    metadata_sources.append((metadata, str(photo.filename), 'photo'))
             except Exception as e:
                 logger.debug(f"Failed to extract metadata from {photo.absolute_path}: {e}")
         
-        # Extract metadata from sidecar files
+        # Extract metadata from sidecar files (lower priority)
         for sidecar in sidecar_files:
             try:
                 if sidecar.extension.lower() in ['.xmp', '.xml']:
                     metadata = self._metadata_extractor.extract_from_xmp(sidecar.absolute_path)
                     if not metadata.is_empty():
-                        metadata_sources.append(metadata)
+                        metadata_sources.append((metadata, str(sidecar.filename), 'sidecar'))
             except Exception as e:
                 logger.debug(f"Failed to extract metadata from {sidecar.absolute_path}: {e}")
         
-        # Aggregate metadata from all sources
+        # Aggregate metadata from all sources with priority
         if metadata_sources:
-            aggregated_camera = self._aggregate_camera_info(metadata_sources)
-            aggregated_dates = self._aggregate_date_info(metadata_sources)
-            aggregated_technical = self._aggregate_technical_info(metadata_sources)
+            aggregated_camera = self._aggregate_camera_info_with_source(metadata_sources)
+            aggregated_dates = self._aggregate_date_info_with_source(metadata_sources)
+            aggregated_technical = self._aggregate_technical_info_with_source(metadata_sources)
         
         # Create final metadata object
-        self._metadata_cache = PhotoMetadata(
+        self._metadata_cache = PhotoMetadataWithSource(
             camera=aggregated_camera,
             dates=aggregated_dates,
             technical=aggregated_technical,
@@ -273,56 +278,78 @@ class PhotoGroup:
         
         return self._metadata_cache
 
-    def _aggregate_camera_info(self, metadata_sources: List[PhotoMetadata]) -> CameraInfo:
-        """Aggregate camera information from multiple metadata sources."""
-        camera = CameraInfo()
+    def _aggregate_camera_info_with_source(self, metadata_sources: List[tuple]) -> CameraInfoWithSource:
+        """Aggregate camera information from multiple metadata sources with source tracking."""
+        camera = CameraInfoWithSource()
         
-        # Use the first non-empty value for each field
-        for metadata in metadata_sources:
+        # Sort sources by priority: photos first, then sidecars
+        sorted_sources = sorted(metadata_sources, key=lambda x: x[2] == 'sidecar')
+        
+        # Use the first non-empty value for each field, prioritizing photo sources
+        for metadata, filename, source_type in sorted_sources:
             if not camera.make and metadata.camera.make:
                 camera.make = metadata.camera.make
+                camera.make_source = filename
             if not camera.model and metadata.camera.model:
                 camera.model = metadata.camera.model
+                camera.model_source = filename
             if not camera.lens_model and metadata.camera.lens_model:
                 camera.lens_model = metadata.camera.lens_model
+                camera.lens_model_source = filename
             if not camera.serial_number and metadata.camera.serial_number:
                 camera.serial_number = metadata.camera.serial_number
+                camera.serial_number_source = filename
         
         return camera
 
-    def _aggregate_date_info(self, metadata_sources: List[PhotoMetadata]) -> DateInfo:
-        """Aggregate date information from multiple metadata sources."""
-        dates = DateInfo()
+    def _aggregate_date_info_with_source(self, metadata_sources: List[tuple]) -> DateInfoWithSource:
+        """Aggregate date information from multiple metadata sources with source tracking."""
+        dates = DateInfoWithSource()
         
-        # Use the first non-empty value for each field
-        for metadata in metadata_sources:
+        # Sort sources by priority: photos first, then sidecars
+        sorted_sources = sorted(metadata_sources, key=lambda x: x[2] == 'sidecar')
+        
+        # Use the first non-empty value for each field, prioritizing photo sources
+        for metadata, filename, source_type in sorted_sources:
             if not dates.date_taken and metadata.dates.date_taken:
                 dates.date_taken = metadata.dates.date_taken
+                dates.date_taken_source = filename
             if not dates.date_modified and metadata.dates.date_modified:
                 dates.date_modified = metadata.dates.date_modified
+                dates.date_modified_source = filename
             if not dates.date_digitized and metadata.dates.date_digitized:
                 dates.date_digitized = metadata.dates.date_digitized
+                dates.date_digitized_source = filename
         
         return dates
 
-    def _aggregate_technical_info(self, metadata_sources: List[PhotoMetadata]) -> TechnicalInfo:
-        """Aggregate technical information from multiple metadata sources."""
-        technical = TechnicalInfo()
+    def _aggregate_technical_info_with_source(self, metadata_sources: List[tuple]) -> TechnicalInfoWithSource:
+        """Aggregate technical information from multiple metadata sources with source tracking."""
+        technical = TechnicalInfoWithSource()
         
-        # Use the first non-empty value for each field
-        for metadata in metadata_sources:
+        # Sort sources by priority: photos first, then sidecars
+        sorted_sources = sorted(metadata_sources, key=lambda x: x[2] == 'sidecar')
+        
+        # Use the first non-empty value for each field, prioritizing photo sources
+        for metadata, filename, source_type in sorted_sources:
             if not technical.iso and metadata.technical.iso:
                 technical.iso = metadata.technical.iso
+                technical.iso_source = filename
             if not technical.aperture and metadata.technical.aperture:
                 technical.aperture = metadata.technical.aperture
+                technical.aperture_source = filename
             if not technical.shutter_speed and metadata.technical.shutter_speed:
                 technical.shutter_speed = metadata.technical.shutter_speed
+                technical.shutter_speed_source = filename
             if not technical.focal_length and metadata.technical.focal_length:
                 technical.focal_length = metadata.technical.focal_length
+                technical.focal_length_source = filename
             if not technical.focal_length_35mm and metadata.technical.focal_length_35mm:
                 technical.focal_length_35mm = metadata.technical.focal_length_35mm
+                technical.focal_length_35mm_source = filename
             if technical.flash_fired is None and metadata.technical.flash_fired is not None:
                 technical.flash_fired = metadata.technical.flash_fired
+                technical.flash_fired_source = filename
         
         return technical
 
