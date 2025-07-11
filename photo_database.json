@@ -1,6 +1,8 @@
 {
   "metadata": {
     "total_groups": 371,
+    "total_valid_groups": 370,
+    "total_invalid_groups": 1,
     "total_photos": 1097,
     "created_by": "imgmaster",
     "version": "1.0"
@@ -9,6 +11,8 @@
     "20250107_0206": {
       "basename": "20250107_0206",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -50,6 +54,8 @@
     "20250105_0002": {
       "basename": "20250105_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -91,6 +97,8 @@
     "20250108_0033": {
       "basename": "20250108_0033",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -132,6 +140,8 @@
     "20250107_0202": {
       "basename": "20250107_0202",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -173,6 +183,8 @@
     "20250108_0027": {
       "basename": "20250108_0027",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -214,6 +226,8 @@
     "20250107_0013": {
       "basename": "20250107_0013",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -255,6 +269,8 @@
     "20250107_0007": {
       "basename": "20250107_0007",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -296,6 +312,8 @@
     "20250107_0028": {
       "basename": "20250107_0028",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -337,6 +355,8 @@
     "20250107_0014": {
       "basename": "20250107_0014",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -378,6 +398,8 @@
     "20250107_0172": {
       "basename": "20250107_0172",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -419,6 +441,8 @@
     "20250107_0166": {
       "basename": "20250107_0166",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -460,6 +484,8 @@
     "20250107_0199": {
       "basename": "20250107_0199",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -501,6 +527,8 @@
     "20250107_0148": {
       "basename": "20250107_0148",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -542,6 +570,8 @@
     "20250107_0006": {
       "basename": "20250107_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -583,6 +613,8 @@
     "20250107_0160": {
       "basename": "20250107_0160",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -624,6 +656,8 @@
     "20250107_0012": {
       "basename": "20250107_0012",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -665,6 +699,8 @@
     "20250107_0174": {
       "basename": "20250107_0174",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -706,6 +742,8 @@
     "20250108_0026": {
       "basename": "20250108_0026",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -747,6 +785,8 @@
     "20250108_0032": {
       "basename": "20250108_0032",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -788,6 +828,8 @@
     "20250108_0009": {
       "basename": "20250108_0009",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -829,6 +871,8 @@
     "20250107_0210": {
       "basename": "20250107_0210",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -870,6 +914,8 @@
     "20250108_0021": {
       "basename": "20250108_0021",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -911,6 +957,8 @@
     "20250107_0198": {
       "basename": "20250107_0198",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -952,6 +1000,8 @@
     "20250107_0204": {
       "basename": "20250107_0204",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -993,6 +1043,8 @@
     "20250108_0035": {
       "basename": "20250108_0035",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1034,6 +1086,8 @@
     "20250107_0167": {
       "basename": "20250107_0167",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1075,6 +1129,8 @@
     "20250107_0173": {
       "basename": "20250107_0173",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1116,6 +1172,8 @@
     "20250108_0034": {
       "basename": "20250108_0034",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1157,6 +1215,8 @@
     "20250108_0020": {
       "basename": "20250108_0020",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1198,6 +1258,8 @@
     "20250107_0205": {
       "basename": "20250107_0205",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -1239,6 +1301,8 @@
     "20250108_0008": {
       "basename": "20250108_0008",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1280,6 +1344,8 @@
     "20250103_0002": {
       "basename": "20250103_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -1321,6 +1387,8 @@
     "20250107_0175": {
       "basename": "20250107_0175",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1362,6 +1430,8 @@
     "20250107_0161": {
       "basename": "20250107_0161",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1403,6 +1473,8 @@
     "20250107_0149": {
       "basename": "20250107_0149",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1444,6 +1516,8 @@
     "20250104_0005": {
       "basename": "20250104_0005",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -1485,6 +1559,8 @@
     "20250107_0015": {
       "basename": "20250107_0015",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1526,6 +1602,8 @@
     "20250107_0029": {
       "basename": "20250107_0029",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1567,6 +1645,8 @@
     "20250107_0203": {
       "basename": "20250107_0203",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1608,6 +1688,8 @@
     "20250105_0003": {
       "basename": "20250105_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -1649,6 +1731,8 @@
     "20250108_0018": {
       "basename": "20250108_0018",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1690,6 +1774,8 @@
     "20250105_0001": {
       "basename": "20250105_0001",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -1731,6 +1817,8 @@
     "20250108_0024": {
       "basename": "20250108_0024",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1772,6 +1860,8 @@
     "20250107_0201": {
       "basename": "20250107_0201",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1813,6 +1903,8 @@
     "20250108_0030": {
       "basename": "20250108_0030",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1854,6 +1946,8 @@
     "20250107_0004": {
       "basename": "20250107_0004",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1895,6 +1989,8 @@
     "20250107_0010": {
       "basename": "20250107_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1936,6 +2032,8 @@
     "20250107_0038": {
       "basename": "20250107_0038",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -1977,6 +2075,8 @@
     "20250107_0159": {
       "basename": "20250107_0159",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2018,6 +2118,8 @@
     "20250107_0003": {
       "basename": "20250107_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2059,6 +2161,8 @@
     "20250107_0165": {
       "basename": "20250107_0165",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2100,6 +2204,8 @@
     "20250107_0017": {
       "basename": "20250107_0017",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2141,6 +2247,8 @@
     "20250107_0171": {
       "basename": "20250107_0171",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2182,6 +2290,8 @@
     "20250107_0039": {
       "basename": "20250107_0039",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2223,6 +2333,8 @@
     "20250107_0011": {
       "basename": "20250107_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2264,6 +2376,8 @@
     "20250107_0177": {
       "basename": "20250107_0177",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2305,6 +2419,8 @@
     "20250107_0005": {
       "basename": "20250107_0005",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2346,6 +2462,8 @@
     "20250107_0163": {
       "basename": "20250107_0163",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2387,6 +2505,8 @@
     "20250107_0188": {
       "basename": "20250107_0188",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2428,6 +2548,8 @@
     "20250108_0031": {
       "basename": "20250108_0031",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2469,6 +2591,8 @@
     "20250108_0025": {
       "basename": "20250108_0025",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2510,6 +2634,8 @@
     "20250108_0019": {
       "basename": "20250108_0019",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2551,6 +2677,8 @@
     "20250108_0036": {
       "basename": "20250108_0036",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2592,6 +2720,8 @@
     "20250107_0207": {
       "basename": "20250107_0207",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -2633,6 +2763,8 @@
     "20250108_0022": {
       "basename": "20250108_0022",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2674,6 +2806,8 @@
     "20250107_0170": {
       "basename": "20250107_0170",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2715,6 +2849,8 @@
     "20250107_0164": {
       "basename": "20250107_0164",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2756,6 +2892,8 @@
     "20250107_0158": {
       "basename": "20250107_0158",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2797,6 +2935,8 @@
     "20250108_0023": {
       "basename": "20250108_0023",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2838,6 +2978,8 @@
     "20250108_0037": {
       "basename": "20250108_0037",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2879,6 +3021,8 @@
     "20250101_0010": {
       "basename": "20250101_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -2920,6 +3064,8 @@
     "20250107_0189": {
       "basename": "20250107_0189",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -2961,6 +3107,8 @@
     "20250107_0162": {
       "basename": "20250107_0162",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3002,6 +3150,8 @@
     "20250107_0176": {
       "basename": "20250107_0176",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3043,6 +3193,8 @@
     "20250101_0006": {
       "basename": "20250101_0006",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3075,6 +3227,8 @@
     "20250107_0016": {
       "basename": "20250107_0016",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3116,6 +3270,8 @@
     "20250107_0200": {
       "basename": "20250107_0200",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3157,6 +3313,8 @@
     "20250104_0004": {
       "basename": "20250104_0004",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3198,6 +3356,8 @@
     "20250107_0001": {
       "basename": "20250107_0001",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3230,6 +3390,8 @@
     "20250101_0007": {
       "basename": "20250101_0007",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3262,6 +3424,8 @@
     "20250101_0011": {
       "basename": "20250101_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3303,6 +3467,8 @@
     "20250104_0007": {
       "basename": "20250104_0007",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3344,6 +3510,8 @@
     "20250103_0003": {
       "basename": "20250103_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3385,6 +3553,8 @@
     "20250107_0002": {
       "basename": "20250107_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3426,6 +3596,8 @@
     "20250105_0006": {
       "basename": "20250105_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3467,6 +3639,8 @@
     "20250104_0006": {
       "basename": "20250104_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -3508,6 +3682,8 @@
     "20250108_0078": {
       "basename": "20250108_0078",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3549,6 +3725,8 @@
     "20250108_0050": {
       "basename": "20250108_0050",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3590,6 +3768,8 @@
     "20250108_0044": {
       "basename": "20250108_0044",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3631,6 +3811,8 @@
     "20250104_0023": {
       "basename": "20250104_0023",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3672,6 +3854,8 @@
     "20250107_0070": {
       "basename": "20250107_0070",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3713,6 +3897,8 @@
     "20250130_0009": {
       "basename": "20250130_0009",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3754,6 +3940,8 @@
     "20250107_0064": {
       "basename": "20250107_0064",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3795,6 +3983,8 @@
     "20250107_0058": {
       "basename": "20250107_0058",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3836,6 +4026,8 @@
     "20250107_0139": {
       "basename": "20250107_0139",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3877,6 +4069,8 @@
     "20250107_0077": {
       "basename": "20250107_0077",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3918,6 +4112,8 @@
     "20250107_0111": {
       "basename": "20250107_0111",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -3959,6 +4155,8 @@
     "20250107_0063": {
       "basename": "20250107_0063",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4000,6 +4198,8 @@
     "20250107_0105": {
       "basename": "20250107_0105",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4041,6 +4241,8 @@
     "20250107_0088": {
       "basename": "20250107_0088",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4082,6 +4284,8 @@
     "20250104_0018": {
       "basename": "20250104_0018",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4123,6 +4327,8 @@
     "20250107_0059": {
       "basename": "20250107_0059",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4164,6 +4370,8 @@
     "20250126_0020": {
       "basename": "20250126_0020",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4205,6 +4413,8 @@
     "20250126_0008": {
       "basename": "20250126_0008",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4246,6 +4456,8 @@
     "20250107_0065": {
       "basename": "20250107_0065",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4287,6 +4499,8 @@
     "20250107_0103": {
       "basename": "20250107_0103",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4328,6 +4542,8 @@
     "20250107_0071": {
       "basename": "20250107_0071",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4369,6 +4585,8 @@
     "20250130_0008": {
       "basename": "20250130_0008",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4410,6 +4628,8 @@
     "20250107_0117": {
       "basename": "20250107_0117",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4451,6 +4671,8 @@
     "20250104_0022": {
       "basename": "20250104_0022",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4492,6 +4714,8 @@
     "20250108_0045": {
       "basename": "20250108_0045",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4533,6 +4757,8 @@
     "20250108_0051": {
       "basename": "20250108_0051",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4574,6 +4800,8 @@
     "20250108_0079": {
       "basename": "20250108_0079",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4615,6 +4843,8 @@
     "20250108_0042": {
       "basename": "20250108_0042",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4656,6 +4886,8 @@
     "20250108_0056": {
       "basename": "20250108_0056",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4697,6 +4929,8 @@
     "20250107_0104": {
       "basename": "20250107_0104",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4738,6 +4972,8 @@
     "20250107_0110": {
       "basename": "20250107_0110",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4779,6 +5015,8 @@
     "20250107_0138": {
       "basename": "20250107_0138",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4820,6 +5058,8 @@
     "20250108_0081": {
       "basename": "20250108_0081",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4861,6 +5101,8 @@
     "20250108_0080": {
       "basename": "20250108_0080",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4902,6 +5144,8 @@
     "20250108_0057": {
       "basename": "20250108_0057",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4943,6 +5187,8 @@
     "20250108_0043": {
       "basename": "20250108_0043",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -4984,6 +5230,8 @@
     "20250107_0116": {
       "basename": "20250107_0116",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5025,6 +5273,8 @@
     "20250107_0102": {
       "basename": "20250107_0102",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5066,6 +5316,8 @@
     "20250126_0009": {
       "basename": "20250126_0009",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5107,6 +5359,8 @@
     "20250126_0021": {
       "basename": "20250126_0021",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5148,6 +5402,8 @@
     "20250104_0019": {
       "basename": "20250104_0019",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5189,6 +5445,8 @@
     "20250107_0089": {
       "basename": "20250107_0089",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5230,6 +5488,8 @@
     "20250107_0062": {
       "basename": "20250107_0062",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5271,6 +5531,8 @@
     "20250107_0076": {
       "basename": "20250107_0076",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5312,6 +5574,8 @@
     "20250104_0008": {
       "basename": "20250104_0008",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5353,6 +5617,8 @@
     "20250104_0020": {
       "basename": "20250104_0020",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5394,6 +5660,8 @@
     "20250108_0047": {
       "basename": "20250108_0047",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5435,6 +5703,8 @@
     "20250107_0098": {
       "basename": "20250107_0098",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5476,6 +5746,8 @@
     "20250108_0053": {
       "basename": "20250108_0053",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5517,6 +5789,8 @@
     "20250107_0067": {
       "basename": "20250107_0067",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5558,6 +5832,8 @@
     "20250107_0073": {
       "basename": "20250107_0073",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5599,6 +5875,8 @@
     "20250108_0084": {
       "basename": "20250108_0084",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5640,6 +5918,8 @@
     "20250107_0048": {
       "basename": "20250107_0048",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5681,6 +5961,8 @@
     "20250107_0060": {
       "basename": "20250107_0060",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5722,6 +6004,8 @@
     "20250107_0106": {
       "basename": "20250107_0106",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5763,6 +6047,8 @@
     "20250126_0019": {
       "basename": "20250126_0019",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5804,6 +6090,8 @@
     "20250107_0074": {
       "basename": "20250107_0074",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5845,6 +6133,8 @@
     "20250107_0112": {
       "basename": "20250107_0112",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5886,6 +6176,8 @@
     "20250126_0023": {
       "basename": "20250126_0023",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5927,6 +6219,8 @@
     "20250107_0128": {
       "basename": "20250107_0128",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -5968,6 +6262,8 @@
     "20250107_0072": {
       "basename": "20250107_0072",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6009,6 +6305,8 @@
     "20250107_0114": {
       "basename": "20250107_0114",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6050,6 +6348,8 @@
     "20250107_0066": {
       "basename": "20250107_0066",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6091,6 +6391,8 @@
     "20250107_0100": {
       "basename": "20250107_0100",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6132,6 +6434,8 @@
     "20250108_0052": {
       "basename": "20250108_0052",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6173,6 +6477,8 @@
     "20250108_0046": {
       "basename": "20250108_0046",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6214,6 +6520,8 @@
     "20250107_0099": {
       "basename": "20250107_0099",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6255,6 +6563,8 @@
     "20250104_0021": {
       "basename": "20250104_0021",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6296,6 +6606,8 @@
     "20250104_0009": {
       "basename": "20250104_0009",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6337,6 +6649,8 @@
     "20250108_0069": {
       "basename": "20250108_0069",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6378,6 +6692,8 @@
     "20250101_0003": {
       "basename": "20250101_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -6419,6 +6735,8 @@
     "20250108_0055": {
       "basename": "20250108_0055",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6460,6 +6778,8 @@
     "20250108_0041": {
       "basename": "20250108_0041",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6501,6 +6821,8 @@
     "20250107_0113": {
       "basename": "20250107_0113",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6542,6 +6864,8 @@
     "20250126_0018": {
       "basename": "20250126_0018",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6583,6 +6907,8 @@
     "20250107_0107": {
       "basename": "20250107_0107",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6624,6 +6950,8 @@
     "20250108_0082": {
       "basename": "20250108_0082",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6665,6 +6993,8 @@
     "20250108_0083": {
       "basename": "20250108_0083",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6706,6 +7036,8 @@
     "20250108_0040": {
       "basename": "20250108_0040",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6747,6 +7079,8 @@
     "20250108_0054": {
       "basename": "20250108_0054",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6788,6 +7122,8 @@
     "20250101_0002": {
       "basename": "20250101_0002",
       "count": 2,
+      "is_valid": false,
+      "has_only_supplementary_files": true,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -6820,6 +7156,8 @@
     "20250108_0068": {
       "basename": "20250108_0068",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6861,6 +7199,8 @@
     "20250107_0101": {
       "basename": "20250107_0101",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6902,6 +7242,8 @@
     "20250107_0115": {
       "basename": "20250107_0115",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6943,6 +7285,8 @@
     "20250107_0129": {
       "basename": "20250107_0129",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -6984,6 +7328,8 @@
     "20250126_0022": {
       "basename": "20250126_0022",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7025,6 +7371,8 @@
     "20250107_0075": {
       "basename": "20250107_0075",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7066,6 +7414,8 @@
     "20250107_0061": {
       "basename": "20250107_0061",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7107,6 +7457,8 @@
     "20250107_0049": {
       "basename": "20250107_0049",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7148,6 +7500,8 @@
     "20250107_0209": {
       "basename": "20250107_0209",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -7189,6 +7543,8 @@
     "20250101_0005": {
       "basename": "20250101_0005",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -7221,6 +7577,8 @@
     "20250101_0004": {
       "basename": "20250101_0004",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -7253,6 +7611,8 @@
     "20250107_0208": {
       "basename": "20250107_0208",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -7294,6 +7654,8 @@
     "20250107_0092": {
       "basename": "20250107_0092",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7335,6 +7697,8 @@
     "20250108_0059": {
       "basename": "20250108_0059",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7376,6 +7740,8 @@
     "20250107_0086": {
       "basename": "20250107_0086",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7417,6 +7783,8 @@
     "20250104_0016": {
       "basename": "20250104_0016",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7458,6 +7826,8 @@
     "20250108_0071": {
       "basename": "20250108_0071",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7499,6 +7869,8 @@
     "20250108_0065": {
       "basename": "20250108_0065",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7540,6 +7912,8 @@
     "20250107_0051": {
       "basename": "20250107_0051",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7581,6 +7955,8 @@
     "20250107_0045": {
       "basename": "20250107_0045",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7622,6 +7998,8 @@
     "20250107_0079": {
       "basename": "20250107_0079",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7663,6 +8041,8 @@
     "20250126_0007": {
       "basename": "20250126_0007",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7704,6 +8084,8 @@
     "20250130_0007": {
       "basename": "20250130_0007",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7745,6 +8127,8 @@
     "20250107_0118": {
       "basename": "20250107_0118",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7786,6 +8170,8 @@
     "20250126_0013": {
       "basename": "20250126_0013",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7827,6 +8213,8 @@
     "20250107_0056": {
       "basename": "20250107_0056",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7868,6 +8256,8 @@
     "20250107_0130": {
       "basename": "20250107_0130",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7909,6 +8299,8 @@
     "20250107_0042": {
       "basename": "20250107_0042",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7950,6 +8342,8 @@
     "20250107_0124": {
       "basename": "20250107_0124",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -7991,6 +8385,8 @@
     "20250104_0011": {
       "basename": "20250104_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8032,6 +8428,8 @@
     "20250104_0002": {
       "basename": "20250104_0002",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -8064,6 +8462,8 @@
     "20250107_0095": {
       "basename": "20250107_0095",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8105,6 +8505,8 @@
     "20250107_0081": {
       "basename": "20250107_0081",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8146,6 +8548,8 @@
     "20250126_0015": {
       "basename": "20250126_0015",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8187,6 +8591,8 @@
     "20250107_0078": {
       "basename": "20250107_0078",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": true,
@@ -8219,6 +8625,8 @@
     "20250130_0001": {
       "basename": "20250130_0001",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8260,6 +8668,8 @@
     "20250126_0001": {
       "basename": "20250126_0001",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8301,6 +8711,8 @@
     "20250107_0044": {
       "basename": "20250107_0044",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8342,6 +8754,8 @@
     "20250107_0122": {
       "basename": "20250107_0122",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8383,6 +8797,8 @@
     "20250107_0050": {
       "basename": "20250107_0050",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8424,6 +8840,8 @@
     "20250107_0136": {
       "basename": "20250107_0136",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8465,6 +8883,8 @@
     "20250104_0003": {
       "basename": "20250104_0003",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -8497,6 +8917,8 @@
     "20250108_0064": {
       "basename": "20250108_0064",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8538,6 +8960,8 @@
     "20250108_0070": {
       "basename": "20250108_0070",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8579,6 +9003,8 @@
     "20250104_0017": {
       "basename": "20250104_0017",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8620,6 +9046,8 @@
     "20250108_0058": {
       "basename": "20250108_0058",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8661,6 +9089,8 @@
     "20250107_0087": {
       "basename": "20250107_0087",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8702,6 +9132,8 @@
     "20250107_0093": {
       "basename": "20250107_0093",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8743,6 +9175,8 @@
     "20250108_0063": {
       "basename": "20250108_0063",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8784,6 +9218,8 @@
     "20250108_0077": {
       "basename": "20250108_0077",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8825,6 +9261,8 @@
     "20250101_0009": {
       "basename": "20250101_0009",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -8857,6 +9295,8 @@
     "20250107_0125": {
       "basename": "20250107_0125",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8898,6 +9338,8 @@
     "20250107_0131": {
       "basename": "20250107_0131",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8939,6 +9381,8 @@
     "20250126_0012": {
       "basename": "20250126_0012",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -8980,6 +9424,8 @@
     "20250107_0119": {
       "basename": "20250107_0119",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9021,6 +9467,8 @@
     "20250126_0006": {
       "basename": "20250126_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9062,6 +9510,8 @@
     "20250108_0076": {
       "basename": "20250108_0076",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9103,6 +9553,8 @@
     "20250101_0008": {
       "basename": "20250101_0008",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -9135,6 +9587,8 @@
     "20250108_0062": {
       "basename": "20250108_0062",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9176,6 +9630,8 @@
     "20250107_0137": {
       "basename": "20250107_0137",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9217,6 +9673,8 @@
     "20250107_0123": {
       "basename": "20250107_0123",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9258,6 +9716,8 @@
     "20250126_0014": {
       "basename": "20250126_0014",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9299,6 +9759,8 @@
     "20250107_0080": {
       "basename": "20250107_0080",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9340,6 +9802,8 @@
     "20250107_0094": {
       "basename": "20250107_0094",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9381,6 +9845,8 @@
     "20250104_0010": {
       "basename": "20250104_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9422,6 +9888,8 @@
     "20250107_0043": {
       "basename": "20250107_0043",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9463,6 +9931,8 @@
     "20250107_0057": {
       "basename": "20250107_0057",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9504,6 +9974,8 @@
     "20250130_0006": {
       "basename": "20250130_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9545,6 +10017,8 @@
     "20250107_0085": {
       "basename": "20250107_0085",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9586,6 +10060,8 @@
     "20250107_0091": {
       "basename": "20250107_0091",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9627,6 +10103,8 @@
     "20250108_0066": {
       "basename": "20250108_0066",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9668,6 +10146,8 @@
     "20250108_0072": {
       "basename": "20250108_0072",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9709,6 +10189,8 @@
     "20250104_0015": {
       "basename": "20250104_0015",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9750,6 +10232,8 @@
     "20250107_0046": {
       "basename": "20250107_0046",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9791,6 +10275,8 @@
     "20250107_0052": {
       "basename": "20250107_0052",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9832,6 +10318,8 @@
     "20250130_0003": {
       "basename": "20250130_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9873,6 +10361,8 @@
     "20250130_0004": {
       "basename": "20250130_0004",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9914,6 +10404,8 @@
     "20250126_0010": {
       "basename": "20250126_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9955,6 +10447,8 @@
     "20250126_0004": {
       "basename": "20250126_0004",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -9996,6 +10490,8 @@
     "20250107_0069": {
       "basename": "20250107_0069",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10037,6 +10533,8 @@
     "20250130_0010": {
       "basename": "20250130_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10078,6 +10576,8 @@
     "20250107_0041": {
       "basename": "20250107_0041",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10119,6 +10619,8 @@
     "20250107_0127": {
       "basename": "20250107_0127",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10160,6 +10662,8 @@
     "20250107_0055": {
       "basename": "20250107_0055",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10201,6 +10705,8 @@
     "20250107_0133": {
       "basename": "20250107_0133",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10242,6 +10748,8 @@
     "20250104_0012": {
       "basename": "20250104_0012",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10283,6 +10791,8 @@
     "20250107_0082": {
       "basename": "20250107_0082",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10324,6 +10834,8 @@
     "20250104_0001": {
       "basename": "20250104_0001",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -10356,6 +10868,8 @@
     "20250107_0096": {
       "basename": "20250107_0096",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10397,6 +10911,8 @@
     "20250107_0109": {
       "basename": "20250107_0109",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10438,6 +10954,8 @@
     "20250126_0002": {
       "basename": "20250126_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10479,6 +10997,8 @@
     "20250126_0016": {
       "basename": "20250126_0016",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10520,6 +11040,8 @@
     "20250130_0002": {
       "basename": "20250130_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10561,6 +11083,8 @@
     "20250107_0053": {
       "basename": "20250107_0053",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10602,6 +11126,8 @@
     "20250107_0135": {
       "basename": "20250107_0135",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10643,6 +11169,8 @@
     "20250107_0047": {
       "basename": "20250107_0047",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10684,6 +11212,8 @@
     "20250107_0121": {
       "basename": "20250107_0121",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10725,6 +11255,8 @@
     "20250104_0014": {
       "basename": "20250104_0014",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10766,6 +11298,8 @@
     "20250108_0073": {
       "basename": "20250108_0073",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10807,6 +11341,8 @@
     "20250108_0067": {
       "basename": "20250108_0067",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10848,6 +11384,8 @@
     "20250107_0090": {
       "basename": "20250107_0090",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10889,6 +11427,8 @@
     "20250107_0084": {
       "basename": "20250107_0084",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10930,6 +11470,8 @@
     "20250108_0048": {
       "basename": "20250108_0048",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -10971,6 +11513,8 @@
     "20250108_0074": {
       "basename": "20250108_0074",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11012,6 +11556,8 @@
     "20250108_0060": {
       "basename": "20250108_0060",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11053,6 +11599,8 @@
     "20250107_0132": {
       "basename": "20250107_0132",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11094,6 +11642,8 @@
     "20250107_0126": {
       "basename": "20250107_0126",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11135,6 +11685,8 @@
     "20250126_0005": {
       "basename": "20250126_0005",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11176,6 +11728,8 @@
     "20250126_0011": {
       "basename": "20250126_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11217,6 +11771,8 @@
     "20250108_0061": {
       "basename": "20250108_0061",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11258,6 +11814,8 @@
     "20250108_0075": {
       "basename": "20250108_0075",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11299,6 +11857,8 @@
     "20250108_0049": {
       "basename": "20250108_0049",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11340,6 +11900,8 @@
     "20250107_0120": {
       "basename": "20250107_0120",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11381,6 +11943,8 @@
     "20250107_0134": {
       "basename": "20250107_0134",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11422,6 +11986,8 @@
     "20250126_0017": {
       "basename": "20250126_0017",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11463,6 +12029,8 @@
     "20250126_0003": {
       "basename": "20250126_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11504,6 +12072,8 @@
     "20250107_0108": {
       "basename": "20250107_0108",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11545,6 +12115,8 @@
     "20250107_0097": {
       "basename": "20250107_0097",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11586,6 +12158,8 @@
     "20250107_0083": {
       "basename": "20250107_0083",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11627,6 +12201,8 @@
     "20250104_0013": {
       "basename": "20250104_0013",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11668,6 +12244,8 @@
     "20250107_0054": {
       "basename": "20250107_0054",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11709,6 +12287,8 @@
     "20250107_0040": {
       "basename": "20250107_0040",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11750,6 +12330,8 @@
     "20250107_0068": {
       "basename": "20250107_0068",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11791,6 +12373,8 @@
     "20250130_0011": {
       "basename": "20250130_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11832,6 +12416,8 @@
     "20250130_0005": {
       "basename": "20250130_0005",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11873,6 +12459,8 @@
     "20250105_0004": {
       "basename": "20250105_0004",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -11905,6 +12493,8 @@
     "20250105_0005": {
       "basename": "20250105_0005",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -11937,6 +12527,8 @@
     "20250108_0012": {
       "basename": "20250108_0012",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -11978,6 +12570,8 @@
     "20250108_0006": {
       "basename": "20250108_0006",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12019,6 +12613,8 @@
     "20250107_0032": {
       "basename": "20250107_0032",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12060,6 +12656,8 @@
     "20250107_0026": {
       "basename": "20250107_0026",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12101,6 +12699,8 @@
     "20250107_0009": {
       "basename": "20250107_0009",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12142,6 +12742,8 @@
     "20250107_0035": {
       "basename": "20250107_0035",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12183,6 +12785,8 @@
     "20250107_0153": {
       "basename": "20250107_0153",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12224,6 +12828,8 @@
     "20250107_0021": {
       "basename": "20250107_0021",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12265,6 +12871,8 @@
     "20250107_0147": {
       "basename": "20250107_0147",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12306,6 +12914,8 @@
     "20250107_0190": {
       "basename": "20250107_0190",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12347,6 +12957,8 @@
     "20250107_0184": {
       "basename": "20250107_0184",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12388,6 +13000,8 @@
     "20250107_0169": {
       "basename": "20250107_0169",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12429,6 +13043,8 @@
     "20250107_0027": {
       "basename": "20250107_0027",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12470,6 +13086,8 @@
     "20250107_0141": {
       "basename": "20250107_0141",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12511,6 +13129,8 @@
     "20250107_0033": {
       "basename": "20250107_0033",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12552,6 +13172,8 @@
     "20250107_0155": {
       "basename": "20250107_0155",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12593,6 +13215,8 @@
     "20250108_0007": {
       "basename": "20250108_0007",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12634,6 +13258,8 @@
     "20250108_0013": {
       "basename": "20250108_0013",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12675,6 +13301,8 @@
     "20250107_0182": {
       "basename": "20250107_0182",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12716,6 +13344,8 @@
     "20250107_0196": {
       "basename": "20250107_0196",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12757,6 +13387,8 @@
     "20250107_0185": {
       "basename": "20250107_0185",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12798,6 +13430,8 @@
     "20250107_0191": {
       "basename": "20250107_0191",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12839,6 +13473,8 @@
     "20250108_0028": {
       "basename": "20250108_0028",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12880,6 +13516,8 @@
     "20250108_0014": {
       "basename": "20250108_0014",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12921,6 +13559,8 @@
     "20250107_0146": {
       "basename": "20250107_0146",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -12962,6 +13602,8 @@
     "20250107_0152": {
       "basename": "20250107_0152",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13003,6 +13645,8 @@
     "20250108_0015": {
       "basename": "20250108_0015",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13044,6 +13688,8 @@
     "20250108_0001": {
       "basename": "20250108_0001",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13085,6 +13731,8 @@
     "20250108_0029": {
       "basename": "20250108_0029",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13126,6 +13774,8 @@
     "20250107_0197": {
       "basename": "20250107_0197",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13167,6 +13817,8 @@
     "20250107_0183": {
       "basename": "20250107_0183",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13208,6 +13860,8 @@
     "20250107_0154": {
       "basename": "20250107_0154",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13249,6 +13903,8 @@
     "20250107_0140": {
       "basename": "20250107_0140",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13290,6 +13946,8 @@
     "20250107_0168": {
       "basename": "20250107_0168",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13331,6 +13989,8 @@
     "20250107_0020": {
       "basename": "20250107_0020",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13372,6 +14032,8 @@
     "20250107_0034": {
       "basename": "20250107_0034",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13413,6 +14075,8 @@
     "20250107_0008": {
       "basename": "20250107_0008",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13454,6 +14118,8 @@
     "20250108_0039": {
       "basename": "20250108_0039",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13495,6 +14161,8 @@
     "20250108_0005": {
       "basename": "20250108_0005",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13536,6 +14204,8 @@
     "20250108_0011": {
       "basename": "20250108_0011",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13577,6 +14247,8 @@
     "20250107_0025": {
       "basename": "20250107_0025",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13618,6 +14290,8 @@
     "20250107_0031": {
       "basename": "20250107_0031",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13659,6 +14333,8 @@
     "20250107_0019": {
       "basename": "20250107_0019",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13700,6 +14376,8 @@
     "20250107_0178": {
       "basename": "20250107_0178",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13741,6 +14419,8 @@
     "20250107_0022": {
       "basename": "20250107_0022",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13782,6 +14462,8 @@
     "20250107_0144": {
       "basename": "20250107_0144",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13823,6 +14505,8 @@
     "20250107_0036": {
       "basename": "20250107_0036",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13864,6 +14548,8 @@
     "20250107_0150": {
       "basename": "20250107_0150",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13905,6 +14591,8 @@
     "20250107_0187": {
       "basename": "20250107_0187",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13946,6 +14634,8 @@
     "20250107_0193": {
       "basename": "20250107_0193",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -13987,6 +14677,8 @@
     "20250107_0018": {
       "basename": "20250107_0018",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14028,6 +14720,8 @@
     "20250107_0030": {
       "basename": "20250107_0030",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14069,6 +14763,8 @@
     "20250107_0156": {
       "basename": "20250107_0156",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14110,6 +14806,8 @@
     "20250107_0024": {
       "basename": "20250107_0024",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14151,6 +14849,8 @@
     "20250107_0142": {
       "basename": "20250107_0142",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14192,6 +14892,8 @@
     "20250108_0010": {
       "basename": "20250108_0010",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14233,6 +14935,8 @@
     "20250108_0004": {
       "basename": "20250108_0004",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14274,6 +14978,8 @@
     "20250107_0195": {
       "basename": "20250107_0195",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14315,6 +15021,8 @@
     "20250108_0038": {
       "basename": "20250108_0038",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14356,6 +15064,8 @@
     "20250107_0181": {
       "basename": "20250107_0181",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14397,6 +15107,8 @@
     "20250107_0192": {
       "basename": "20250107_0192",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14438,6 +15150,8 @@
     "20250107_0186": {
       "basename": "20250107_0186",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14479,6 +15193,8 @@
     "20250108_0017": {
       "basename": "20250108_0017",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14520,6 +15236,8 @@
     "20250108_0003": {
       "basename": "20250108_0003",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14561,6 +15279,8 @@
     "20250107_0151": {
       "basename": "20250107_0151",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14602,6 +15322,8 @@
     "20250107_0145": {
       "basename": "20250107_0145",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14643,6 +15365,8 @@
     "20250107_0179": {
       "basename": "20250107_0179",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14684,6 +15408,8 @@
     "20250108_0002": {
       "basename": "20250108_0002",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14725,6 +15451,8 @@
     "20250108_0016": {
       "basename": "20250108_0016",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14766,6 +15494,8 @@
     "20250107_0180": {
       "basename": "20250107_0180",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14807,6 +15537,8 @@
     "20250107_0194": {
       "basename": "20250107_0194",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14848,6 +15580,8 @@
     "20250107_0143": {
       "basename": "20250107_0143",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14889,6 +15623,8 @@
     "20250107_0157": {
       "basename": "20250107_0157",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14930,6 +15666,8 @@
     "20250107_0037": {
       "basename": "20250107_0037",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -14971,6 +15709,8 @@
     "20250107_0023": {
       "basename": "20250107_0023",
       "count": 3,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": true,
         "raw": true,
@@ -15012,6 +15752,8 @@
     "20250102_0001": {
       "basename": "20250102_0001",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,
@@ -15044,6 +15786,8 @@
     "20250103_0001": {
       "basename": "20250103_0001",
       "count": 2,
+      "is_valid": true,
+      "has_only_supplementary_files": false,
       "formats": {
         "jpeg": false,
         "raw": false,

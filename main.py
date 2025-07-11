@@ -75,6 +75,18 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
         # Display summary
         click.echo(f"\nScan completed successfully!")
         click.echo(f"Found {photos_found} photos organized into {manager.total_groups} groups")
+        click.echo(f"Valid groups (with actual photos): {manager.total_valid_groups}")
+        
+        # Show invalid groups if any
+        invalid_groups = manager.get_invalid_groups()
+        if invalid_groups:
+            click.echo(f"Invalid groups (sidecar/live photos only): {manager.total_invalid_groups}")
+            click.echo("Invalid groups:")
+            for group in invalid_groups[:5]:  # Show first 5
+                extensions = sorted(group.get_extensions())
+                click.echo(f"  {group.basename}: {', '.join(extensions)}")
+            if len(invalid_groups) > 5:
+                click.echo(f"  ... and {len(invalid_groups) - 5} more invalid groups")
         
         # Show format breakdown
         format_stats = {}

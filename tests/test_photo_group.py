@@ -225,6 +225,41 @@ class TestPhotoGroup(unittest.TestCase):
         # Test hashing
         group_set = {group1, group2, group3}
         self.assertEqual(len(group_set), 2)  # group1 and group2 should hash the same
+    
+    def test_group_validity(self):
+        """Test photo group validity based on content."""
+        # Valid groups (contain actual photos)
+        valid_cases = [
+            ([".jpg"], "JPEG only"),
+            ([".cr2"], "RAW only"), 
+            ([".heic"], "HEIC only"),
+            ([".png"], "Other format only"),
+            ([".jpg", ".xmp"], "JPEG with sidecar"),
+            ([".cr2", ".jpg", ".xmp"], "RAW + JPEG + sidecar"),
+            ([".heic", ".mov"], "HEIC with live photo"),
+        ]
+        
+        for extensions, description in valid_cases:
+            with self.subTest(case=description, extensions=extensions):
+                group, _ = self.create_photo_group_with_files("test", extensions)
+                self.assertTrue(group.is_valid, f"Group should be valid: {description}")
+                self.assertFalse(group.has_only_supplementary_files)
+        
+        # Invalid groups (only sidecar/live photos)
+        invalid_cases = [
+            ([".xmp"], "XMP sidecar only"),
+            ([".xml"], "XML sidecar only"),
+            ([".mov"], "Live photo only"),
+            ([".xmp", ".xml"], "Multiple sidecars"),
+            ([".xmp", ".mov"], "Sidecar + live photo"),
+            ([".thm"], "Thumbnail only"),
+        ]
+        
+        for extensions, description in invalid_cases:
+            with self.subTest(case=description, extensions=extensions):
+                group, _ = self.create_photo_group_with_files("test", extensions)
+                self.assertFalse(group.is_valid, f"Group should be invalid: {description}")
+                self.assertTrue(group.has_only_supplementary_files)
 
 
 class TestPhotoGroupManager(unittest.TestCase):
@@ -436,26 +471,28 @@ class TestPhotoGroupManager(unittest.TestCase):
         """Test a complex scenario with multiple photo types."""
         # Create a realistic photo collection
         photos = self.create_test_photos([
-            # Vacation photos with RAW + JPEG
+            # Vacation photos with RAW + JPEG (valid)
             "vacation_001.cr2", "vacation_001.jpg", "vacation_001.xmp",
             "vacation_002.cr2", "vacation_002.jpg",
             
-            # Phone photos
+            # Phone photos (valid)
             "phone_pic.heic", "phone_pic.mov",  # Live photo
             
-            # Single files
+            # Single files (valid)
             "screenshot.png",
-            "document_scan.pdf"  # This should fail validation
+            
+            # Invalid groups (sidecar only)
+            "orphan_sidecar.xmp",
+            "lost_metadata.xml",
         ])
         
-        # Add all valid photos (PDF will raise exception)
-        valid_photos = photos[:-1]  # Exclude the PDF
-        
-        self.manager.add_photos(valid_photos)
+        self.manager.add_photos(photos)
         
         # Verify structure
-        self.assertEqual(self.manager.total_groups, 4)
-        self.assertEqual(self.manager.total_photos, 7)
+        self.assertEqual(self.manager.total_groups, 6)
+        self.assertEqual(self.manager.total_photos, 9)
+        self.assertEqual(self.manager.total_valid_groups, 4)  # vacation_001, vacation_002, phone_pic, screenshot
+        self.assertEqual(self.manager.total_invalid_groups, 2)  # orphan_sidecar, lost_metadata
         
         # Check vacation photos group
         vacation_001 = self.manager.get_group("vacation_001")
@@ -463,19 +500,28 @@ class TestPhotoGroupManager(unittest.TestCase):
         self.assertTrue(vacation_001.has_raw)
         self.assertTrue(vacation_001.has_jpeg)
         self.assertTrue(vacation_001.has_sidecar)
+        self.assertTrue(vacation_001.is_valid)
         
         vacation_002 = self.manager.get_group("vacation_002")
         self.assertEqual(vacation_002.count, 2)
+        self.assertTrue(vacation_002.is_valid)
         
         # Check phone photo group
         phone_pic = self.manager.get_group("phone_pic")
         self.assertEqual(phone_pic.count, 2)
         self.assertTrue(phone_pic.has_heic)
         self.assertTrue(phone_pic.has_live_photo)
+        self.assertTrue(phone_pic.is_valid)
         
-        # Get groups with multiple formats
+        # Check invalid groups
+        orphan_group = self.manager.get_group("orphan_sidecar")
+        self.assertFalse(orphan_group.is_valid)
+        self.assertTrue(orphan_group.has_only_supplementary_files)
+        
+        # Get groups with multiple formats (should only include valid ones with multiple files)
         multi_format = self.manager.get_groups_with_multiple_formats()
-        self.assertEqual(len(multi_format), 3)  # vacation_001, vacation_002, phone_pic
+        valid_multi_format = [g for g in multi_format if g.is_valid]
+        self.assertEqual(len(valid_multi_format), 3)  # vacation_001, vacation_002, phone_pic
 
 
 class TestPhotoGroupManagerDirectoryScanning(unittest.TestCase):
@@ -676,3 +722,116 @@ class TestPhotoGroupManagerSerialization(unittest.TestCase):
         # Should have loaded only the existing photo
         self.assertEqual(loaded_manager.total_photos, 1)
         self.assertEqual(loaded_manager.total_groups, 1)
+
+
+class TestPhotoGroupManagerValidation(unittest.TestCase):
+    """Test cases for PhotoGroupManager validation functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.manager = PhotoGroupManager()
+        
+    def tearDown(self):
+        """Clean up after tests."""
+        import shutil
+        if os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
+    
+    def create_test_photos(self, filenames: list) -> list:
+        """Create multiple test photos."""
+        photos = []
+        for filename in filenames:
+            file_path = os.path.join(self.temp_dir, filename)
+            with open(file_path, 'w') as f:
+                f.write("test content")
+            photos.append(Photo(file_path))
+        return photos
+    
+    def test_valid_and_invalid_groups(self):
+        """Test identification of valid and invalid groups."""
+        # Create mixed groups
+        photos = self.create_test_photos([
+            # Valid groups
+            "photo1.jpg", "photo1.xmp",     # Valid: JPEG + sidecar
+            "photo2.cr2", "photo2.jpg",     # Valid: RAW + JPEG
+            "photo3.heic",                  # Valid: HEIC only
+            
+            # Invalid groups  
+            "photo4.xmp",                   # Invalid: sidecar only
+            "photo5.mov",                   # Invalid: live photo only
+            "photo6.xmp", "photo6.xml",     # Invalid: multiple sidecars
+        ])
+        
+        self.manager.add_photos(photos)
+        
+        # Check total counts
+        self.assertEqual(self.manager.total_groups, 6)
+        self.assertEqual(self.manager.total_valid_groups, 3)
+        self.assertEqual(self.manager.total_invalid_groups, 3)
+        
+        # Check specific groups
+        valid_groups = self.manager.get_valid_groups()
+        invalid_groups = self.manager.get_invalid_groups()
+        
+        valid_basenames = {group.basename for group in valid_groups}
+        invalid_basenames = {group.basename for group in invalid_groups}
+        
+        self.assertEqual(valid_basenames, {"photo1", "photo2", "photo3"})
+        self.assertEqual(invalid_basenames, {"photo4", "photo5", "photo6"})
+    
+    def test_remove_invalid_groups(self):
+        """Test removing invalid groups from manager."""
+        photos = self.create_test_photos([
+            "valid.jpg",       # Valid group
+            "invalid.xmp",     # Invalid group
+            "another.mov",     # Invalid group
+        ])
+        
+        self.manager.add_photos(photos)
+        
+        # Initially should have 3 groups
+        self.assertEqual(self.manager.total_groups, 3)
+        self.assertEqual(self.manager.total_valid_groups, 1)
+        self.assertEqual(self.manager.total_invalid_groups, 2)
+        
+        # Remove invalid groups
+        removed_count = self.manager.remove_invalid_groups()
+        
+        # Should have removed 2 groups
+        self.assertEqual(removed_count, 2)
+        self.assertEqual(self.manager.total_groups, 1)
+        self.assertEqual(self.manager.total_valid_groups, 1)
+        self.assertEqual(self.manager.total_invalid_groups, 0)
+        
+        # Only valid group should remain
+        remaining_group = self.manager.get_group("valid")
+        self.assertIsNotNone(remaining_group)
+        self.assertTrue(remaining_group.is_valid)
+    
+    def test_json_serialization_with_validity(self):
+        """Test that validity information is included in JSON serialization."""
+        photos = self.create_test_photos([
+            "valid.jpg", "valid.xmp",
+            "invalid.mov"
+        ])
+        
+        self.manager.add_photos(photos)
+        data = self.manager.to_dict()
+        
+        # Check metadata includes validity counts
+        metadata = data["metadata"]
+        self.assertEqual(metadata["total_groups"], 2)
+        self.assertEqual(metadata["total_valid_groups"], 1)
+        self.assertEqual(metadata["total_invalid_groups"], 1)
+        
+        # Check individual group validity
+        groups = data["groups"]
+        
+        valid_group = groups["valid"]
+        self.assertTrue(valid_group["is_valid"])
+        self.assertFalse(valid_group["has_only_supplementary_files"])
+        
+        invalid_group = groups["invalid"]
+        self.assertFalse(invalid_group["is_valid"])
+        self.assertTrue(invalid_group["has_only_supplementary_files"])

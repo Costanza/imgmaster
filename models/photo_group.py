@@ -176,6 +176,30 @@ class PhotoGroup:
         """Check if this group contains any other format photos (PNG, GIF, etc.)."""
         return self.has_format_type('other')
     
+    @property
+    def is_valid(self) -> bool:
+        """
+        Check if this group is valid (contains at least one actual photo).
+        
+        A valid group must contain at least one photo that is not a sidecar file
+        or live photo. Sidecar files (.xmp, .xml, etc.) and live photos (.mov)
+        are considered supplementary files, not standalone photos.
+        
+        Returns:
+            True if the group contains at least one JPEG, RAW, HEIC, or other format photo
+        """
+        return (self.has_jpeg or self.has_raw or self.has_heic or self.is_other_format)
+    
+    @property
+    def has_only_supplementary_files(self) -> bool:
+        """
+        Check if this group contains only supplementary files (sidecar/live photos).
+        
+        Returns:
+            True if the group contains only sidecar files and/or live photos
+        """
+        return not self.is_valid and (self.has_sidecar or self.has_live_photo)
+    
     def __len__(self) -> int:
         """Return the number of photos in this group."""
         return len(self._photos)
@@ -316,6 +340,38 @@ class PhotoGroupManager:
         """
         return [group for group in self._groups.values() if group.count > 1]
     
+    def get_valid_groups(self) -> List[PhotoGroup]:
+        """
+        Get all valid photo groups (containing at least one actual photo).
+        
+        Returns:
+            A list of PhotoGroup instances that are considered valid
+        """
+        return [group for group in self._groups.values() if group.is_valid]
+    
+    def get_invalid_groups(self) -> List[PhotoGroup]:
+        """
+        Get all invalid photo groups (containing only sidecar/live photos).
+        
+        Returns:
+            A list of PhotoGroup instances that are considered invalid
+        """
+        return [group for group in self._groups.values() if not group.is_valid]
+    
+    def remove_invalid_groups(self) -> int:
+        """
+        Remove all invalid groups from the manager.
+        
+        Returns:
+            The number of groups that were removed
+        """
+        invalid_basenames = [group.basename for group in self.get_invalid_groups()]
+        
+        for basename in invalid_basenames:
+            self._groups.pop(basename, None)
+        
+        return len(invalid_basenames)
+    
     @property
     def total_groups(self) -> int:
         """Get the total number of groups."""
@@ -325,6 +381,16 @@ class PhotoGroupManager:
     def total_photos(self) -> int:
         """Get the total number of photos across all groups."""
         return sum(group.count for group in self._groups.values())
+    
+    @property
+    def total_valid_groups(self) -> int:
+        """Get the total number of valid groups."""
+        return len(self.get_valid_groups())
+    
+    @property
+    def total_invalid_groups(self) -> int:
+        """Get the total number of invalid groups."""
+        return len(self.get_invalid_groups())
     
     def __len__(self) -> int:
         """Return the number of groups."""
@@ -421,6 +487,8 @@ class PhotoGroupManager:
         result = {
             "metadata": {
                 "total_groups": self.total_groups,
+                "total_valid_groups": self.total_valid_groups,
+                "total_invalid_groups": self.total_invalid_groups,
                 "total_photos": self.total_photos,
                 "created_by": "imgmaster",
                 "version": "1.0"
@@ -432,6 +500,8 @@ class PhotoGroupManager:
             group_data = {
                 "basename": group.basename,
                 "count": group.count,
+                "is_valid": group.is_valid,
+                "has_only_supplementary_files": group.has_only_supplementary_files,
                 "formats": {
                     "jpeg": group.has_jpeg,
                     "raw": group.has_raw,
