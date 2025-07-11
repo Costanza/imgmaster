@@ -143,9 +143,11 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
               help='Number of digits for sequence numbers when basenames would be identical (1-6, default: 3)')
 @click.option('--dry-run', is_flag=True, default=False,
               help='Show what would be renamed without actually renaming files')
+@click.option('--copy', is_flag=True, default=False,
+              help='Copy files instead of moving them (leaves originals in place)')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enable verbose logging')
-def rename(database: Path, destination: Path, scheme: str, sequence_digits: int, dry_run: bool, verbose: bool):
+def rename(database: Path, destination: Path, scheme: str, sequence_digits: int, dry_run: bool, copy: bool, verbose: bool):
     """
     Rename photo files based on metadata and grouping rules.
     
@@ -153,8 +155,11 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
     and moves them to the DESTINATION directory based on metadata like dates, 
     camera info, and group relationships.
     
+    With --copy flag, files are copied instead of moved, leaving originals in place.
+    This is useful for testing and validation before committing to the operation.
+    
     DATABASE: Path to the JSON database file created by the build command
-    DESTINATION: Target directory where renamed files will be moved
+    DESTINATION: Target directory where renamed files will be moved or copied
     
     NAMING SCHEME PLACEHOLDERS:
     
@@ -203,6 +208,7 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
     logger.info(f"Naming scheme: {scheme}")
     logger.info(f"Sequence digits: {sequence_digits}")
     logger.info(f"Dry run mode: {dry_run}")
+    logger.info(f"Copy mode: {copy}")
     
     try:
         # Load the photo database
@@ -269,43 +275,56 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
         if dry_run:
             click.echo("\n🔍 DRY RUN - No files will be moved:")
             for i, op in enumerate(rename_operations[:10]):  # Show first 10
-                click.echo(f"  {op['old_path'].name} -> {op['new_path'].relative_to(destination)}")
+                action = "copied to" if copy else "moved to"
+                click.echo(f"  {op['old_path'].name} -> {action} -> {op['new_path'].relative_to(destination)}")
             if len(rename_operations) > 10:
                 click.echo(f"  ... and {len(rename_operations) - 10} more files")
         else:
             # Perform actual rename operations
-            click.echo(f"\n📁 Renaming {len(rename_operations)} files...")
+            action_verb = "Copying" if copy else "Renaming"
+            click.echo(f"\n📁 {action_verb} {len(rename_operations)} files...")
             
-            renamed_count = 0
+            processed_count = 0
             for op in rename_operations:
                 try:
                     # Create directory if needed
                     op['new_dir'].mkdir(parents=True, exist_ok=True)
                     
-                    # Move the file
-                    shutil.move(str(op['old_path']), str(op['new_path']))
+                    # Copy or move the file based on the copy flag
+                    if copy:
+                        shutil.copy2(str(op['old_path']), str(op['new_path']))
+                        # For copy mode, we don't update the original photo path, but we still track history
+                        _add_copy_history(op['photo'], op['old_path'], op['new_path'])
+                    else:
+                        # Move the file
+                        shutil.move(str(op['old_path']), str(op['new_path']))
+                        # Update photo object with new path and add history
+                        _update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
                     
-                    # Update photo object with new path and add history
-                    _update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
+                    processed_count += 1
                     
-                    renamed_count += 1
-                    
-                    if renamed_count % 100 == 0:
-                        click.echo(f"  Renamed {renamed_count}/{len(rename_operations)} files...")
+                    if processed_count % 100 == 0:
+                        click.echo(f"  {action_verb.rstrip('ing')}ed {processed_count}/{len(rename_operations)} files...")
                         
                 except Exception as e:
-                    logger.error(f"Failed to rename {op['old_path']} -> {op['new_path']}: {e}")
-                    click.echo(f"❌ Error renaming {op['old_path'].name}: {e}")
+                    logger.error(f"Failed to {action_verb.lower()} {op['old_path']} -> {op['new_path']}: {e}")
+                    click.echo(f"❌ Error {action_verb.lower()} {op['old_path'].name}: {e}")
             
-            click.echo(f"✅ Successfully renamed {renamed_count} files")
+            success_verb = "copied" if copy else "renamed"
+            click.echo(f"✅ Successfully {success_verb} {processed_count} files")
             
-            # Save updated database
-            click.echo(f"\nUpdating database...")
-            manager.save_to_json(database)
+            # Save updated database (only if we moved files, not copied)
+            if not copy:
+                click.echo(f"\nUpdating database...")
+                manager.save_to_json(database)
             
-            click.echo(f"\n🎉 Rename operation completed!")
-            click.echo(f"Files moved to: {destination}")
-            click.echo(f"Database updated: {database}")
+            click.echo(f"\n🎉 {action_verb} operation completed!")
+            click.echo(f"Files {success_verb} to: {destination}")
+            if not copy:
+                click.echo(f"Database updated: {database}")
+            else:
+                click.echo(f"Original files preserved at their original locations")
+                click.echo(f"Database unchanged (copy operation)")
         
         logger.info("Photo rename process completed")
         
@@ -467,6 +486,24 @@ def _update_photo_with_history(photo, old_path: Path, new_path: Path) -> None:
     
     # Update the photo's path
     photo.absolute_path = new_path
+
+
+def _add_copy_history(photo, old_path: Path, new_path: Path) -> None:
+    """Add copy history entry to photo object without updating the path."""
+    from datetime import datetime
+    
+    # Add history entry if not already present
+    if not hasattr(photo, 'history'):
+        photo.history = []
+    
+    # Add the copy operation to history
+    photo.history.append({
+        'original_path': str(old_path),
+        'copied_to': str(new_path),
+        'timestamp': datetime.now().isoformat(),
+        'operation': 'copy'
+    })
+    # Note: We don't update photo.absolute_path for copy operations
 
 
 def _apply_sequences_to_operations(rename_operations: list, sequence_digits: int) -> None:
