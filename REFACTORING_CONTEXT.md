@@ -87,11 +87,32 @@ Created a `services/` package with four specialized services:
 
 ## Future Considerations
 
-1. **Additional Services**: Could extract more specialized services (e.g., file operations, validation)
-2. **Configuration Service**: Centralized configuration management
-3. **Plugin Architecture**: Support for extensible naming schemes or metadata extractors
-4. **API Layer**: Services could be exposed via REST API
-5. **Async Operations**: Could add async support for large directory scans
+1. **~~Additional Services~~**: ✅ Completed - Extracted specialized services
+2. **~~Configuration Service~~**: Could add centralized configuration management
+3. **~~Plugin Architecture~~**: Could support extensible naming schemes or metadata extractors
+4. **~~API Layer~~**: Services could be exposed via REST API
+5. **~~Async Operations~~**: Could add async support for large directory scans
+6. **~~Repository Pattern~~**: ✅ Completed - Abstracted data storage with repository pattern
+
+## Repository Pattern Implementation (Added)
+
+### Problem
+The services were directly coupled to JSON file storage, making it difficult to:
+- Add support for different storage backends (SQL, NoSQL)
+- Unit test services without file system dependencies
+- Scale to larger datasets requiring database storage
+
+### Solution
+Implemented the repository pattern with:
+- **Abstract interface** (`PhotoGroupRepository`) defining storage operations
+- **JSON file implementation** (`JsonFilePhotoGroupRepository`) for current functionality
+- **Future implementations** (TODO) for SQL, NoSQL, and other storage backends
+
+### Benefits
+- **Storage flexibility** - Easy to swap storage backends
+- **Testability** - Services can be tested with mock repositories
+- **Scalability** - Can support database storage for large photo collections
+- **Maintainability** - Clean separation between business logic and data access
 
 ## Files Modified
 
@@ -101,10 +122,14 @@ Created a `services/` package with four specialized services:
 - `services/rename_service.py`
 - `services/presentation_service.py`
 - `services/logging_service.py`
+- `repositories/__init__.py` (Added: Repository pattern)
+- `repositories/photo_group_repository.py` (Added: Repository pattern)
 
 ### Modified
 - `main.py` (complete rewrite to lightweight CLI)
 - `pyproject.toml` (minor structure updates)
+- `services/database_service.py` (Updated: Repository injection)
+- `services/rename_service.py` (Updated: Repository injection)
 
 ### Preserved
 - `models/` (unchanged - existing data models)

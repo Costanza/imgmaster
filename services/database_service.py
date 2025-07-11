@@ -5,13 +5,15 @@ from pathlib import Path
 from typing import Dict, Any
 
 from models import PhotoGroupManager
+from repositories import PhotoGroupRepository, JsonFilePhotoGroupRepository
 
 
 class DatabaseBuildService:
     """Service for building photo group databases."""
     
-    def __init__(self):
+    def __init__(self, repository: PhotoGroupRepository = None):
         self.logger = logging.getLogger(__name__)
+        self.repository = repository or JsonFilePhotoGroupRepository()
     
     def build_database(
         self, 
@@ -66,9 +68,9 @@ class DatabaseBuildService:
         self.logger.info("Extracting metadata for all photo groups...")
         manager.extract_all_metadata()
         
-        # Save to JSON
+        # Save to repository
         self.logger.info(f"Saving photo database to: {output}")
-        manager.save_to_json(output)
+        self.repository.save(manager, str(output))
         
         self.logger.info("Photo database build completed successfully")
         return results

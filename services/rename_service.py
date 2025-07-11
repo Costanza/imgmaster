@@ -8,13 +8,15 @@ from datetime import datetime
 from collections import defaultdict
 
 from models import PhotoGroupManager
+from repositories import PhotoGroupRepository, JsonFilePhotoGroupRepository
 
 
 class PhotoRenameService:
     """Service for renaming and organizing photo files."""
     
-    def __init__(self):
+    def __init__(self, repository: PhotoGroupRepository = None):
         self.logger = logging.getLogger(__name__)
+        self.repository = repository or JsonFilePhotoGroupRepository()
     
     def rename_photos(
         self,
@@ -50,8 +52,8 @@ class PhotoRenameService:
         self.logger.info(f"Copy mode: {copy_mode}")
         self.logger.info(f"Skip invalid groups: {skip_invalid}")
         
-        # Load the photo database
-        manager = PhotoGroupManager.load_from_json(database_path)
+        # Load the photo database using repository
+        manager = self.repository.load(str(database_path))
         
         # Create destination directory if needed
         if not dry_run:

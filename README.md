@@ -199,7 +199,7 @@ uv run python main.py rename photos.json ~/Pictures/Events \
 
 ## Architecture
 
-ImgMaster follows a clean, service-oriented architecture:
+ImgMaster follows a clean, service-oriented architecture with the repository pattern for data persistence:
 
 ```
 imgmaster/
@@ -209,6 +209,8 @@ imgmaster/
 │   ├── rename_service.py       # File renaming logic
 │   ├── presentation_service.py # CLI output formatting
 │   └── logging_service.py      # Logging configuration
+├── repositories/        # Data persistence abstraction
+│   └── photo_group_repository.py  # Repository pattern implementations
 ├── models/              # Data models
 │   ├── photo.py         # Photo file representation
 │   ├── photo_group.py   # Photo grouping logic
@@ -216,11 +218,23 @@ imgmaster/
 └── tests/               # Test suite
 ```
 
+### Repository Pattern
+
+The application uses the repository pattern to abstract data storage operations:
+
+- **`PhotoGroupRepository`** - Abstract interface for data operations
+- **`JsonFilePhotoGroupRepository`** - JSON file-based implementation (default)
+- **Future implementations** (TODO):
+  - `SqlitePhotoGroupRepository` - SQLite database storage
+  - `PostgresPhotoGroupRepository` - PostgreSQL database storage
+  - `MongoPhotoGroupRepository` - MongoDB document storage
+
 This architecture provides:
 - **Separation of concerns** - Each service has a single responsibility
 - **Testability** - Services can be unit tested independently  
 - **Maintainability** - Easy to extend and modify
 - **Reusability** - Services can be used by other interfaces
+- **Flexibility** - Easy to swap storage backends without changing business logic
 
 ## Development
 
