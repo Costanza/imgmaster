@@ -134,5 +134,54 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
         sys.exit(1)
 
 
+@cli.command()
+@click.argument('database', type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=Path))
+@click.option('--dry-run', is_flag=True, default=False,
+              help='Show what would be renamed without actually renaming files')
+@click.option('--verbose', '-v', is_flag=True,
+              help='Enable verbose logging')
+def rename(database: Path, dry_run: bool, verbose: bool):
+    """
+    Rename photo files based on metadata and grouping rules.
+    
+    Uses the photo DATABASE to rename files according to configurable patterns
+    based on metadata like dates, camera info, and group relationships.
+    
+    DATABASE: Path to the JSON database file created by the build command
+    """
+    setup_logging(verbose)
+    logger = logging.getLogger(__name__)
+    
+    logger.info("Starting photo rename process")
+    logger.info(f"Database file: {database}")
+    logger.info(f"Dry run mode: {dry_run}")
+    
+    try:
+        # TODO: Implement rename functionality
+        # This will include:
+        # - Loading the photo database from JSON
+        # - Applying renaming rules based on metadata
+        # - Handling conflicts and ensuring unique names
+        # - Updating file paths in groups
+        # - Saving the updated database
+        
+        click.echo("🚧 Rename functionality is not yet implemented.")
+        click.echo("This command will be used to rename photo files based on metadata and grouping rules.")
+        
+        if dry_run:
+            click.echo("This would run in dry-run mode (no actual file changes).")
+        
+        logger.info("Rename command placeholder executed")
+        
+    except FileNotFoundError as e:
+        click.echo(f"❌ Error: {e}", err=True)
+        logger.error(f"File not found: {e}")
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"❌ Unexpected error: {e}", err=True)
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     cli()
