@@ -1,3 +1,5 @@
+import json
+import logging
 from typing import Dict, List, Set, Optional
 from collections import defaultdict
 from pathlib import Path
@@ -342,3 +344,227 @@ class PhotoGroupManager:
     def __repr__(self) -> str:
         """Detailed string representation of the PhotoGroupManager."""
         return f"PhotoGroupManager(groups={list(self._groups.keys())})"
+    
+    def scan_directory(self, directory_path: str | Path, recursive: bool = True) -> int:
+        """
+        Scan a directory for photo files and add them to groups.
+        
+        Args:
+            directory_path: Path to the directory to scan
+            recursive: Whether to scan subdirectories recursively
+            
+        Returns:
+            The number of photos found and added
+            
+        Raises:
+            FileNotFoundError: If the directory doesn't exist
+            PermissionError: If the directory can't be accessed
+        """
+        logger = logging.getLogger(__name__)
+        directory = Path(directory_path)
+        
+        if not directory.exists():
+            raise FileNotFoundError(f"Directory not found: {directory}")
+        
+        if not directory.is_dir():
+            raise ValueError(f"Path is not a directory: {directory}")
+        
+        logger.info(f"Starting scan of directory: {directory}")
+        logger.info(f"Recursive scan: {recursive}")
+        
+        photos_found = 0
+        errors_encountered = 0
+        supported_formats = Photo.get_all_supported_formats()
+        
+        # Choose the appropriate glob pattern
+        pattern = "**/*" if recursive else "*"
+        
+        for file_path in directory.glob(pattern):
+            if not file_path.is_file():
+                continue
+            
+            # Check if the file extension is supported
+            file_extension = file_path.suffix.lower()
+            if file_extension not in supported_formats:
+                continue
+            
+            try:
+                photo = Photo(file_path)
+                self.add_photo(photo)
+                photos_found += 1
+                
+                if photos_found % 100 == 0:  # Log progress every 100 files
+                    logger.info(f"Processed {photos_found} photos so far...")
+                    
+            except Exception as e:
+                errors_encountered += 1
+                logger.warning(f"Failed to process file {file_path}: {e}")
+        
+        logger.info(f"Scan completed. Found {photos_found} photos in {self.total_groups} groups")
+        if errors_encountered > 0:
+            logger.warning(f"Encountered {errors_encountered} errors during scan")
+        
+        return photos_found
+    
+    def to_dict(self) -> Dict:
+        """
+        Convert the PhotoGroupManager to a dictionary for JSON serialization.
+        
+        Returns:
+            A dictionary representation of all groups and photos
+        """
+        result = {
+            "metadata": {
+                "total_groups": self.total_groups,
+                "total_photos": self.total_photos,
+                "created_by": "imgmaster",
+                "version": "1.0"
+            },
+            "groups": {}
+        }
+        
+        for basename, group in self._groups.items():
+            group_data = {
+                "basename": group.basename,
+                "count": group.count,
+                "formats": {
+                    "jpeg": group.has_jpeg,
+                    "raw": group.has_raw,
+                    "heic": group.has_heic,
+                    "live_photo": group.has_live_photo,
+                    "sidecar": group.has_sidecar,
+                    "other": group.has_other_format
+                },
+                "photos": []
+            }
+            
+            for photo in group.get_photos():
+                photo_data = {
+                    "filename": photo.filename,
+                    "basename": photo.basename,
+                    "extension": photo.extension,
+                    "absolute_path": str(photo.absolute_path),
+                    "format_classification": photo.format_classification,
+                    "size_bytes": photo.size_bytes,
+                    "size_mb": photo.size_mb
+                }
+                group_data["photos"].append(photo_data)
+            
+            result["groups"][basename] = group_data
+        
+        return result
+    
+    def save_to_json(self, file_path: str | Path, indent: int = 2) -> None:
+        """
+        Save the PhotoGroupManager to a JSON file.
+        
+        Args:
+            file_path: Path where to save the JSON file
+            indent: Number of spaces for JSON indentation
+            
+        Raises:
+            PermissionError: If the file cannot be written
+            OSError: If there's an I/O error
+        """
+        logger = logging.getLogger(__name__)
+        output_path = Path(file_path)
+        
+        logger.info(f"Saving photo database to: {output_path}")
+        
+        try:
+            # Ensure the directory exists
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            data = self.to_dict()
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=indent, ensure_ascii=False)
+            
+            file_size = output_path.stat().st_size
+            logger.info(f"Successfully saved database with {self.total_groups} groups and {self.total_photos} photos")
+            logger.info(f"Output file size: {file_size:,} bytes ({file_size / 1024:.1f} KB)")
+            
+        except Exception as e:
+            logger.error(f"Failed to save database to {output_path}: {e}")
+            raise
+    
+    @classmethod
+    def from_dict(cls, data: Dict) -> 'PhotoGroupManager':
+        """
+        Create a PhotoGroupManager from a dictionary (loaded from JSON).
+        
+        Args:
+            data: Dictionary representation of the manager
+            
+        Returns:
+            A new PhotoGroupManager instance
+            
+        Raises:
+            KeyError: If required keys are missing from the data
+            ValueError: If the data format is invalid
+        """
+        logger = logging.getLogger(__name__)
+        
+        if "groups" not in data:
+            raise ValueError("Invalid data format: missing 'groups' key")
+        
+        manager = cls()
+        
+        for basename, group_data in data["groups"].items():
+            if "photos" not in group_data:
+                logger.warning(f"Skipping group {basename}: missing photos data")
+                continue
+            
+            for photo_data in group_data["photos"]:
+                try:
+                    # Recreate Photo objects from saved data
+                    photo_path = Path(photo_data["absolute_path"])
+                    if photo_path.exists():
+                        photo = Photo(photo_path)
+                        manager.add_photo(photo)
+                    else:
+                        logger.warning(f"Photo file not found: {photo_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to recreate photo from data: {e}")
+        
+        logger.info(f"Loaded {manager.total_groups} groups with {manager.total_photos} photos from saved data")
+        return manager
+    
+    @classmethod
+    def load_from_json(cls, file_path: str | Path) -> 'PhotoGroupManager':
+        """
+        Load a PhotoGroupManager from a JSON file.
+        
+        Args:
+            file_path: Path to the JSON file to load
+            
+        Returns:
+            A new PhotoGroupManager instance
+            
+        Raises:
+            FileNotFoundError: If the file doesn't exist
+            json.JSONDecodeError: If the file is not valid JSON
+            ValueError: If the data format is invalid
+        """
+        logger = logging.getLogger(__name__)
+        input_path = Path(file_path)
+        
+        logger.info(f"Loading photo database from: {input_path}")
+        
+        if not input_path.exists():
+            raise FileNotFoundError(f"Database file not found: {input_path}")
+        
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            manager = cls.from_dict(data)
+            logger.info(f"Successfully loaded database from {input_path}")
+            return manager
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in file {input_path}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to load database from {input_path}: {e}")
+            raise

@@ -1,6 +1,8 @@
 import unittest
 import tempfile
 import os
+import json
+import logging
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
@@ -476,9 +478,201 @@ class TestPhotoGroupManager(unittest.TestCase):
         self.assertEqual(len(multi_format), 3)  # vacation_001, vacation_002, phone_pic
 
 
-if __name__ == '__main__':
-    # Add the parent directory to the path so we can import models
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+class TestPhotoGroupManagerDirectoryScanning(unittest.TestCase):
+    """Test cases for directory scanning functionality."""
     
-    unittest.main()
+    def setUp(self):
+        """Set up test fixtures."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.manager = PhotoGroupManager()
+        
+        # Set up logging to capture log messages
+        self.log_handler = logging.StreamHandler()
+        self.log_handler.setLevel(logging.DEBUG)
+        logger = logging.getLogger('models.photo_group')
+        logger.addHandler(self.log_handler)
+        logger.setLevel(logging.DEBUG)
+        
+    def tearDown(self):
+        """Clean up after tests."""
+        import shutil
+        if os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
+    
+    def create_directory_structure(self) -> None:
+        """Create a test directory structure with photos."""
+        # Root level photos
+        self.create_temp_file("photo1.jpg")
+        self.create_temp_file("photo1.cr2")
+        self.create_temp_file("photo2.png")
+        
+        # Subdirectory with photos
+        subdir = os.path.join(self.temp_dir, "subfolder")
+        os.makedirs(subdir)
+        
+        with open(os.path.join(subdir, "photo3.heic"), 'w') as f:
+            f.write("test content")
+        with open(os.path.join(subdir, "photo3.mov"), 'w') as f:
+            f.write("test content")
+        
+        # Non-photo files (should be ignored)
+        self.create_temp_file("readme.txt")
+        with open(os.path.join(subdir, "document.pdf"), 'w') as f:
+            f.write("test content")
+    
+    def create_temp_file(self, filename: str) -> str:
+        """Create a temporary file for testing."""
+        file_path = os.path.join(self.temp_dir, filename)
+        with open(file_path, 'w') as f:
+            f.write("test content")
+        return file_path
+    
+    def test_scan_directory_recursive(self):
+        """Test recursive directory scanning."""
+        self.create_directory_structure()
+        
+        photos_found = self.manager.scan_directory(self.temp_dir, recursive=True)
+        
+        # Should find all photos in root and subdirectories
+        self.assertEqual(photos_found, 5)  # 3 in root + 2 in subfolder
+        self.assertEqual(self.manager.total_groups, 3)  # photo1, photo2, photo3
+        
+        # Verify specific groups
+        photo1_group = self.manager.get_group("photo1")
+        self.assertEqual(photo1_group.count, 2)  # .jpg and .cr2
+        
+        photo3_group = self.manager.get_group("photo3")
+        self.assertEqual(photo3_group.count, 2)  # .heic and .mov
+    
+    def test_scan_directory_non_recursive(self):
+        """Test non-recursive directory scanning."""
+        self.create_directory_structure()
+        
+        photos_found = self.manager.scan_directory(self.temp_dir, recursive=False)
+        
+        # Should only find photos in root directory
+        self.assertEqual(photos_found, 3)  # Only root level photos
+        self.assertEqual(self.manager.total_groups, 2)  # photo1, photo2
+    
+    def test_scan_nonexistent_directory(self):
+        """Test scanning a directory that doesn't exist."""
+        with self.assertRaises(FileNotFoundError):
+            self.manager.scan_directory("/nonexistent/directory")
+    
+    def test_scan_file_instead_of_directory(self):
+        """Test scanning a file instead of directory."""
+        file_path = self.create_temp_file("test.jpg")
+        
+        with self.assertRaises(ValueError):
+            self.manager.scan_directory(file_path)
+
+
+class TestPhotoGroupManagerSerialization(unittest.TestCase):
+    """Test cases for JSON serialization functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.manager = PhotoGroupManager()
+        
+    def tearDown(self):
+        """Clean up after tests."""
+        import shutil
+        if os.path.exists(self.temp_dir):
+            shutil.rmtree(self.temp_dir)
+    
+    def create_test_photos(self, filenames: list) -> list:
+        """Create multiple test photos."""
+        photos = []
+        for filename in filenames:
+            file_path = os.path.join(self.temp_dir, filename)
+            with open(file_path, 'w') as f:
+                f.write("test content")
+            photos.append(Photo(file_path))
+        return photos
+    
+    def test_to_dict(self):
+        """Test converting manager to dictionary."""
+        photos = self.create_test_photos(["img1.jpg", "img1.cr2", "img2.png"])
+        self.manager.add_photos(photos)
+        
+        data = self.manager.to_dict()
+        
+        # Check metadata
+        self.assertIn("metadata", data)
+        metadata = data["metadata"]
+        self.assertEqual(metadata["total_groups"], 2)
+        self.assertEqual(metadata["total_photos"], 3)
+        self.assertEqual(metadata["created_by"], "imgmaster")
+        
+        # Check groups
+        self.assertIn("groups", data)
+        groups = data["groups"]
+        self.assertIn("img1", groups)
+        self.assertIn("img2", groups)
+        
+        # Check img1 group details
+        img1_group = groups["img1"]
+        self.assertEqual(img1_group["count"], 2)
+        self.assertTrue(img1_group["formats"]["jpeg"])
+        self.assertTrue(img1_group["formats"]["raw"])
+        self.assertEqual(len(img1_group["photos"]), 2)
+    
+    def test_save_and_load_json(self):
+        """Test saving to and loading from JSON file."""
+        # Create test data
+        photos = self.create_test_photos(["test1.jpg", "test1.xmp", "test2.heic"])
+        self.manager.add_photos(photos)
+        
+        # Save to JSON
+        json_path = os.path.join(self.temp_dir, "test_database.json")
+        self.manager.save_to_json(json_path)
+        
+        # Verify file was created
+        self.assertTrue(os.path.exists(json_path))
+        
+        # Load from JSON
+        loaded_manager = PhotoGroupManager.load_from_json(json_path)
+        
+        # Verify loaded data
+        self.assertEqual(loaded_manager.total_groups, self.manager.total_groups)
+        self.assertEqual(loaded_manager.total_photos, self.manager.total_photos)
+        
+        # Check specific groups
+        test1_group = loaded_manager.get_group("test1")
+        self.assertIsNotNone(test1_group)
+        self.assertEqual(test1_group.count, 2)
+    
+    def test_save_json_creates_directory(self):
+        """Test that saving JSON creates necessary directories."""
+        photos = self.create_test_photos(["test.jpg"])
+        self.manager.add_photos(photos)
+        
+        # Save to nested path that doesn't exist
+        nested_path = os.path.join(self.temp_dir, "nested", "dir", "database.json")
+        self.manager.save_to_json(nested_path)
+        
+        # Verify file was created and directories were made
+        self.assertTrue(os.path.exists(nested_path))
+    
+    def test_load_nonexistent_json(self):
+        """Test loading from non-existent JSON file."""
+        with self.assertRaises(FileNotFoundError):
+            PhotoGroupManager.load_from_json("/nonexistent/file.json")
+    
+    def test_from_dict_with_missing_files(self):
+        """Test loading from dict when some photo files are missing."""
+        # Create and save manager
+        photos = self.create_test_photos(["test.jpg", "test.cr2"])
+        self.manager.add_photos(photos)
+        data = self.manager.to_dict()
+        
+        # Remove one of the photo files
+        os.remove(photos[0].absolute_path)
+        
+        # Load from dict (should handle missing file gracefully)
+        loaded_manager = PhotoGroupManager.from_dict(data)
+        
+        # Should have loaded only the existing photo
+        self.assertEqual(loaded_manager.total_photos, 1)
+        self.assertEqual(loaded_manager.total_groups, 1)
