@@ -171,6 +171,11 @@ class PhotoGroup:
         """Check if this group contains any Live Photos."""
         return self.has_format_type('live_photo')
     
+    @property
+    def is_other_format(self) -> bool:
+        """Check if this group contains any other format photos (PNG, GIF, etc.)."""
+        return self.has_format_type('other')
+    
     def __len__(self) -> int:
         """Return the number of photos in this group."""
         return len(self._photos)
@@ -433,7 +438,7 @@ class PhotoGroupManager:
                     "heic": group.has_heic,
                     "live_photo": group.has_live_photo,
                     "sidecar": group.has_sidecar,
-                    "other": group.has_other_format
+                    "other": group.is_other_format
                 },
                 "photos": []
             }
