@@ -5,6 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .photo import Photo
+from .metadata import MetadataExtractor, PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
 
 
 class PhotoGroup:
@@ -24,6 +25,8 @@ class PhotoGroup:
         """
         self.basename = basename
         self._photos: Dict[str, Photo] = {}  # extension -> Photo mapping
+        self._metadata_cache: Optional[PhotoMetadata] = None  # Cached aggregated metadata
+        self._metadata_extractor = MetadataExtractor()
         
     def add_photo(self, photo: Photo) -> None:
         """
@@ -41,6 +44,7 @@ class PhotoGroup:
             )
         
         self._photos[photo.extension] = photo
+        self.invalidate_metadata_cache()  # Invalidate cache when adding photos
     
     def remove_photo(self, extension: str) -> Optional[Photo]:
         """
@@ -57,7 +61,10 @@ class PhotoGroup:
         if not ext.startswith('.'):
             ext = '.' + ext
             
-        return self._photos.pop(ext, None)
+        removed_photo = self._photos.pop(ext, None)
+        if removed_photo:
+            self.invalidate_metadata_cache()  # Invalidate cache when removing photos
+        return removed_photo
     
     def get_photo(self, extension: str) -> Optional[Photo]:
         """
@@ -199,6 +206,129 @@ class PhotoGroup:
             True if the group contains only sidecar files and/or live photos
         """
         return not self.is_valid and (self.has_sidecar or self.has_live_photo)
+
+    def extract_metadata(self, force_refresh: bool = False) -> PhotoMetadata:
+        """
+        Extract and aggregate metadata from all photos in this group.
+        
+        Args:
+            force_refresh: If True, re-extract metadata even if cached
+            
+        Returns:
+            PhotoMetadata object with aggregated information from all photos
+        """
+        logger = logging.getLogger(__name__)
+        
+        # Return cached metadata if available and not forcing refresh
+        if self._metadata_cache and not force_refresh:
+            return self._metadata_cache
+            
+        # Initialize aggregated metadata
+        aggregated_camera = CameraInfo()
+        aggregated_dates = DateInfo()
+        aggregated_technical = TechnicalInfo()
+        
+        # Get photos that can contain metadata (exclude sidecar files initially)
+        photo_files = [photo for photo in self._photos.values() 
+                      if photo.format_classification not in ['sidecar']]
+        
+        # Also check for sidecar files that might contain metadata
+        sidecar_files = [photo for photo in self._photos.values() 
+                        if photo.format_classification == 'sidecar']
+        
+        metadata_sources = []
+        
+        # Extract metadata from photo files first
+        for photo in photo_files:
+            try:
+                metadata = self._metadata_extractor.extract_from_photo(photo.absolute_path)
+                if not metadata.is_empty():
+                    metadata_sources.append(metadata)
+            except Exception as e:
+                logger.debug(f"Failed to extract metadata from {photo.absolute_path}: {e}")
+        
+        # Extract metadata from sidecar files
+        for sidecar in sidecar_files:
+            try:
+                if sidecar.extension.lower() in ['.xmp', '.xml']:
+                    metadata = self._metadata_extractor.extract_from_xmp(sidecar.absolute_path)
+                    if not metadata.is_empty():
+                        metadata_sources.append(metadata)
+            except Exception as e:
+                logger.debug(f"Failed to extract metadata from {sidecar.absolute_path}: {e}")
+        
+        # Aggregate metadata from all sources
+        if metadata_sources:
+            aggregated_camera = self._aggregate_camera_info(metadata_sources)
+            aggregated_dates = self._aggregate_date_info(metadata_sources)
+            aggregated_technical = self._aggregate_technical_info(metadata_sources)
+        
+        # Create final metadata object
+        self._metadata_cache = PhotoMetadata(
+            camera=aggregated_camera,
+            dates=aggregated_dates,
+            technical=aggregated_technical,
+            source_file=f"group:{self.basename}"
+        )
+        
+        return self._metadata_cache
+
+    def _aggregate_camera_info(self, metadata_sources: List[PhotoMetadata]) -> CameraInfo:
+        """Aggregate camera information from multiple metadata sources."""
+        camera = CameraInfo()
+        
+        # Use the first non-empty value for each field
+        for metadata in metadata_sources:
+            if not camera.make and metadata.camera.make:
+                camera.make = metadata.camera.make
+            if not camera.model and metadata.camera.model:
+                camera.model = metadata.camera.model
+            if not camera.lens_model and metadata.camera.lens_model:
+                camera.lens_model = metadata.camera.lens_model
+            if not camera.serial_number and metadata.camera.serial_number:
+                camera.serial_number = metadata.camera.serial_number
+        
+        return camera
+
+    def _aggregate_date_info(self, metadata_sources: List[PhotoMetadata]) -> DateInfo:
+        """Aggregate date information from multiple metadata sources."""
+        dates = DateInfo()
+        
+        # Use the first non-empty value for each field
+        for metadata in metadata_sources:
+            if not dates.date_taken and metadata.dates.date_taken:
+                dates.date_taken = metadata.dates.date_taken
+            if not dates.date_modified and metadata.dates.date_modified:
+                dates.date_modified = metadata.dates.date_modified
+            if not dates.date_digitized and metadata.dates.date_digitized:
+                dates.date_digitized = metadata.dates.date_digitized
+        
+        return dates
+
+    def _aggregate_technical_info(self, metadata_sources: List[PhotoMetadata]) -> TechnicalInfo:
+        """Aggregate technical information from multiple metadata sources."""
+        technical = TechnicalInfo()
+        
+        # Use the first non-empty value for each field
+        for metadata in metadata_sources:
+            if not technical.iso and metadata.technical.iso:
+                technical.iso = metadata.technical.iso
+            if not technical.aperture and metadata.technical.aperture:
+                technical.aperture = metadata.technical.aperture
+            if not technical.shutter_speed and metadata.technical.shutter_speed:
+                technical.shutter_speed = metadata.technical.shutter_speed
+            if not technical.focal_length and metadata.technical.focal_length:
+                technical.focal_length = metadata.technical.focal_length
+            if not technical.focal_length_35mm and metadata.technical.focal_length_35mm:
+                technical.focal_length_35mm = metadata.technical.focal_length_35mm
+            if technical.flash_fired is None and metadata.technical.flash_fired is not None:
+                technical.flash_fired = metadata.technical.flash_fired
+        
+        return technical
+
+    def invalidate_metadata_cache(self) -> None:
+        """Invalidate the cached metadata. Will be re-extracted on next access."""
+        self._metadata_cache = None
     
     def __len__(self) -> int:
         """Return the number of photos in this group."""
@@ -371,6 +501,28 @@ class PhotoGroupManager:
             self._groups.pop(basename, None)
         
         return len(invalid_basenames)
+
+    def extract_all_metadata(self, force_refresh: bool = False) -> None:
+        """
+        Extract metadata for all groups in the manager.
+        
+        Args:
+            force_refresh: If True, re-extract metadata even if cached
+        """
+        logger = logging.getLogger(__name__)
+        logger.info("Extracting metadata for all photo groups...")
+        
+        total_groups = len(self._groups)
+        processed = 0
+        
+        for group in self._groups.values():
+            group.extract_metadata(force_refresh=force_refresh)
+            processed += 1
+            
+            if processed % 10 == 0:  # Log progress every 10 groups
+                logger.info(f"Extracted metadata for {processed}/{total_groups} groups")
+        
+        logger.info(f"Metadata extraction completed for {processed} groups")
     
     @property
     def total_groups(self) -> int:
@@ -497,6 +649,9 @@ class PhotoGroupManager:
         }
         
         for basename, group in self._groups.items():
+            # Extract metadata for this group
+            group_metadata = group.extract_metadata()
+            
             group_data = {
                 "basename": group.basename,
                 "count": group.count,
@@ -510,6 +665,7 @@ class PhotoGroupManager:
                     "sidecar": group.has_sidecar,
                     "other": group.is_other_format
                 },
+                "metadata": group_metadata.to_dict(),
                 "photos": []
             }
             
