@@ -526,70 +526,100 @@ def _apply_explicit_sequences(rename_operations: list, sequence_digits: int) -> 
     from collections import defaultdict
     
     # Group operations by their base filename pattern (with {sequence} still in place)
-    pattern_groups = defaultdict(list)
+    # AND by their original photo group to ensure group-level sequencing
+    pattern_to_groups = defaultdict(lambda: defaultdict(list))
     
     for operation in rename_operations:
         base_filename = operation['base_filename']
-        pattern_groups[base_filename].append(operation)
+        original_group_basename = operation['group'].basename
+        pattern_to_groups[base_filename][original_group_basename].append(operation)
     
     # Apply sequences to each pattern group
-    for pattern, operations in pattern_groups.items():
-        for i, operation in enumerate(operations, 1):
-            # Replace {sequence} with the actual sequence number
-            sequence_str = f"{i:0{sequence_digits}d}"
+    for pattern, group_operations in pattern_to_groups.items():
+        # Sort group names for consistent sequence assignment
+        sorted_group_names = sorted(group_operations.keys())
+        
+        for seq_idx, group_name in enumerate(sorted_group_names, 1):
+            operations = group_operations[group_name]
+            
+            # All operations in this group get the same sequence number
+            sequence_str = f"{seq_idx:0{sequence_digits}d}"
             final_filename = pattern.replace('{sequence}', sequence_str)
             
-            # Calculate final paths using the stored destination
-            destination = operation['destination']
-            name_parts = final_filename.split('/')
-            if len(name_parts) > 1:
-                # Has subdirectories
-                subdir_path = Path(*name_parts[:-1])
-                filename = name_parts[-1]
-                final_path = destination / subdir_path / f"{filename}{operation['photo'].extension}"
-            else:
-                # No subdirectories
-                final_path = destination / f"{final_filename}{operation['photo'].extension}"
-            
-            operation['new_path'] = final_path
-            operation['new_dir'] = final_path.parent
+            for operation in operations:
+                # Calculate final paths using the stored destination
+                destination = operation['destination']
+                name_parts = final_filename.split('/')
+                if len(name_parts) > 1:
+                    # Has subdirectories
+                    subdir_path = Path(*name_parts[:-1])
+                    filename = name_parts[-1]
+                    final_path = destination / subdir_path / f"{filename}{operation['photo'].extension}"
+                else:
+                    # No subdirectories
+                    final_path = destination / f"{final_filename}{operation['photo'].extension}"
+                
+                operation['new_path'] = final_path
+                operation['new_dir'] = final_path.parent
 
 
 def _apply_collision_sequences(rename_operations: list, sequence_digits: int) -> None:
     """Apply sequences for operations that would collide (automatic collision detection)."""
     from collections import defaultdict
     
-    # Group operations by their final filename (including extension and full path)
-    filename_groups = defaultdict(list)
+    # Group operations by their base filename (without extension) and original photo group
+    # This ensures all files in a photo group get the same sequence number
+    basename_to_groups = defaultdict(set)
+    basename_to_operations = defaultdict(list)
     
     for operation in rename_operations:
-        # Create the full filename with extension
-        base_path = operation['base_new_path']
-        extension = operation['photo'].extension
-        full_path = f"{base_path}{extension}"
+        # Group by the base path without extension
+        base_path = str(operation['base_new_path'])
+        original_group_basename = operation['group'].basename
         
-        filename_groups[str(full_path)].append(operation)
+        basename_to_groups[base_path].add(original_group_basename)
+        basename_to_operations[base_path].append(operation)
     
-    # Process each group of files that would have the same name
-    for full_path, operations in filename_groups.items():
-        if len(operations) == 1:
-            # No collision - use the base path as-is
-            operation = operations[0]
-            base_path = operation['base_new_path']
-            extension = operation['photo'].extension
-            final_path = Path(f"{base_path}{extension}")
+    # Identify which base names have conflicts (multiple different photo groups with same target name)
+    conflicting_basenames = []
+    for base_path, original_groups in basename_to_groups.items():
+        if len(original_groups) > 1:
+            # Multiple photo groups would result in the same target name
+            conflicting_basenames.append(base_path)
+    
+    # Apply sequences to all operations
+    for base_path, operations in basename_to_operations.items():
+        if base_path in conflicting_basenames:
+            # This basename has conflicts - group operations by their original photo group
+            # and assign the same sequence to all files in each group
+            group_to_operations = defaultdict(list)
+            for operation in operations:
+                original_group_basename = operation['group'].basename
+                group_to_operations[original_group_basename].append(operation)
             
-            operation['new_path'] = final_path
-            operation['new_dir'] = final_path.parent
+            # Sort group names for consistent sequence assignment
+            sorted_group_names = sorted(group_to_operations.keys())
+            
+            for seq_idx, group_name in enumerate(sorted_group_names, 1):
+                group_operations = group_to_operations[group_name]
+                
+                for operation in group_operations:
+                    base_path_obj = operation['base_new_path']
+                    extension = operation['photo'].extension
+                    
+                    # Apply sequence number - all files in this group get the same sequence
+                    sequence_str = f"_{seq_idx:0{sequence_digits}d}"
+                    final_path = Path(f"{base_path_obj}{sequence_str}{extension}")
+                    
+                    operation['new_path'] = final_path
+                    operation['new_dir'] = final_path.parent
         else:
-            # Collision detected - apply sequences
-            for i, operation in enumerate(operations, 1):
-                base_path = operation['base_new_path']
+            # No conflicts for this basename - use as-is
+            for operation in operations:
+                base_path_obj = operation['base_new_path']
                 extension = operation['photo'].extension
                 
-                # Insert sequence number before the extension
-                sequence_str = f"_{i:0{sequence_digits}d}"
-                final_path = Path(f"{base_path}{sequence_str}{extension}")
+                final_path = Path(f"{base_path_obj}{extension}")
                 
                 operation['new_path'] = final_path
                 operation['new_dir'] = final_path.parent
