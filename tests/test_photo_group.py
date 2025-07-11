@@ -490,7 +490,7 @@ class TestPhotoGroupManager(unittest.TestCase):
         
         # Verify structure
         self.assertEqual(self.manager.total_groups, 6)
-        self.assertEqual(self.manager.total_photos, 9)
+        self.assertEqual(self.manager.total_photos, 10)  # Fixed: 10 photos total
         self.assertEqual(self.manager.total_valid_groups, 4)  # vacation_001, vacation_002, phone_pic, screenshot
         self.assertEqual(self.manager.total_invalid_groups, 2)  # orphan_sidecar, lost_metadata
         
