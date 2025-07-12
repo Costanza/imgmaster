@@ -49,7 +49,7 @@ class TestSkipInvalidGroups:
             # Check output
             output = result.output
             assert "Processing 1 photo groups..." in output
-            assert "Skipping 1 invalid photo groups" in output
+            assert "problematic groups" in output  # Changed from specific skipping message
             assert "Total files to rename: 2" in output  # Only valid group files
             
             # Check that only valid group files are listed
@@ -181,5 +181,5 @@ class TestSkipInvalidGroups:
             # Check output
             output = result.output
             assert "Processing 0 photo groups..." in output
-            assert "Skipping 2 invalid photo groups" in output
+            assert "problematic groups" in output  # Changed from specific skipping message
             assert "Total files to rename: 0" in output

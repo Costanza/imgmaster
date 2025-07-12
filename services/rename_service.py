@@ -10,6 +10,7 @@ from collections import defaultdict
 
 from models import PhotoGroupManager
 from repositories import PhotoGroupRepository, JsonFilePhotoGroupRepository
+from services.error_handling_service import ErrorHandlingService, ErrorType
 
 
 class PhotoRenameService:
@@ -18,6 +19,7 @@ class PhotoRenameService:
     def __init__(self, repository: PhotoGroupRepository = None):
         self.logger = logging.getLogger(__name__)
         self.repository = repository or JsonFilePhotoGroupRepository()
+        self.error_handler = ErrorHandlingService()
     
     def rename_photos(
         self,
@@ -66,13 +68,39 @@ class PhotoRenameService:
         # Validate the naming scheme
         self._validate_naming_scheme(scheme)
         
-        # Determine which groups to process
+        # Separate valid groups from problematic ones
+        valid_groups, problematic_groups = self._classify_groups(manager.get_all_groups())
+        
+        # Handle problematic groups based on skip_invalid flag
+        error_results = {}
         if skip_invalid:
-            groups_to_process = manager.get_valid_groups()
-            invalid_groups_count = manager.total_invalid_groups
+            # Skip problematic groups by moving to error folders in their SOURCE directories (if not dry_run)
+            if not dry_run and problematic_groups:
+                error_results = self._handle_problematic_groups_in_source(problematic_groups)
+            
+            # Check valid groups for required metadata and move those that fail to error folders too
+            groups_to_process = []
+            groups_missing_metadata = []
+            
+            for group in valid_groups:
+                if self._group_has_required_metadata(group, scheme):
+                    groups_to_process.append(group)
+                else:
+                    groups_missing_metadata.append((group, ErrorType.MISSING_DATE, "Required metadata missing for naming scheme"))
+            
+            # Move groups with missing required metadata to error folders
+            if not dry_run and groups_missing_metadata:
+                missing_metadata_results = self._handle_problematic_groups_in_source(groups_missing_metadata)
+                # Add to problematic_groups list so they get removed from database
+                problematic_groups.extend(groups_missing_metadata)
+            
+            # Count groups that would be skipped due to invalid metadata
+            invalid_metadata_count = len(groups_missing_metadata)
         else:
-            groups_to_process = manager.get_all_groups()
-            invalid_groups_count = 0
+            # Include problematic groups in processing
+            all_groups = valid_groups + [group for group, _, _ in problematic_groups]
+            groups_to_process = all_groups
+            invalid_metadata_count = 0
         
         # Generate rename operations
         rename_operations = self._generate_rename_operations(
@@ -85,12 +113,14 @@ class PhotoRenameService:
         # Build results
         results = {
             'total_groups_processed': len(groups_to_process),
-            'invalid_groups_skipped': invalid_groups_count,
+            'problematic_groups_moved': len(problematic_groups) if skip_invalid else 0,
+            'invalid_metadata_skipped': invalid_metadata_count,
             'total_files': len(rename_operations),
             'dry_run': dry_run,
             'copy_mode': copy_mode,
             'destination': str(destination),
-            'operations': []
+            'operations': [],
+            'error_summary': self.error_handler.get_error_summary(str(destination)) if not dry_run and skip_invalid else {}
         }
         
         if dry_run:
@@ -110,6 +140,13 @@ class PhotoRenameService:
             
             # Save updated database (only if we moved files, not copied)
             if not copy_mode:
+                # Remove problematic groups from manager before saving
+                # since they've been moved to error folders and their paths are no longer valid
+                if skip_invalid and problematic_groups:
+                    for group, _, _ in problematic_groups:
+                        manager.remove_group(group.basename)
+                        self.logger.debug(f"Removed problematic group {group.basename} from database before saving")
+                
                 manager.save_to_json(database_path)
                 results['database_updated'] = True
             else:
@@ -204,48 +241,48 @@ class PhotoRenameService:
             }
         else:
             # If no date_taken available, use the group basename as fallback
-            # This preserves the original basename date pattern if available
+            # This should only happen for groups that don't require dates in the scheme
             replacements = {
-                '{date}': 'UNKNOWN',
-                '{datetime}': 'UNKNOWN',
-                '{year}': 'UNKNOWN',
-                '{month}': 'UNKNOWN', 
-                '{day}': 'UNKNOWN',
-                '{hour}': 'UNKNOWN',
-                '{minute}': 'UNKNOWN',
-                '{second}': 'UNKNOWN',
+                '{date}': group.basename,  # Use original basename as fallback
+                '{datetime}': group.basename,
+                '{year}': group.basename.split('_')[0] if '_' in group.basename else group.basename,
+                '{month}': 'XX',
+                '{day}': 'XX',
+                '{hour}': 'XX',
+                '{minute}': 'XX',
+                '{second}': 'XX',
             }
         
         # Camera info replacements
         if camera:
             replacements.update({
-                '{camera_make}': self._safe_filename(camera.make or 'Unknown'),
-                '{camera_model}': self._safe_filename(camera.model or 'Unknown'),
-                '{lens_model}': self._safe_filename(camera.lens_model or 'Unknown'),
-                '{serial_number}': self._safe_filename(camera.serial_number or 'Unknown'),
+                '{camera_make}': self._safe_filename(camera.make or 'UnknownMake'),
+                '{camera_model}': self._safe_filename(camera.model or 'UnknownModel'),
+                '{lens_model}': self._safe_filename(camera.lens_model or 'UnknownLens'),
+                '{serial_number}': self._safe_filename(camera.serial_number or 'NoSerial'),
             })
         else:
             replacements.update({
-                '{camera_make}': 'Unknown',
-                '{camera_model}': 'Unknown',
-                '{lens_model}': 'Unknown',
-                '{serial_number}': 'Unknown',
+                '{camera_make}': 'UnknownMake',
+                '{camera_model}': 'UnknownModel',
+                '{lens_model}': 'UnknownLens',
+                '{serial_number}': 'NoSerial',
             })
         
         # Technical info replacements
         if technical:
             replacements.update({
-                '{iso}': str(technical.iso or 'Unknown'),
-                '{aperture}': f"f{technical.aperture}" if technical.aperture else 'Unknown',
-                '{focal_length}': f"{technical.focal_length}mm" if technical.focal_length else 'Unknown',
-                '{shutter_speed}': str(technical.shutter_speed or 'Unknown'),
+                '{iso}': str(technical.iso or 'UnknownISO'),
+                '{aperture}': f"f{technical.aperture}" if technical.aperture else 'UnknownAperture',
+                '{focal_length}': f"{technical.focal_length}mm" if technical.focal_length else 'UnknownFocal',
+                '{shutter_speed}': str(technical.shutter_speed or 'UnknownShutter'),
             })
         else:
             replacements.update({
-                '{iso}': 'Unknown',
-                '{aperture}': 'Unknown',
-                '{focal_length}': 'Unknown',
-                '{shutter_speed}': 'Unknown',
+                '{iso}': 'UnknownISO',
+                '{aperture}': 'UnknownAperture',
+                '{focal_length}': 'UnknownFocal',
+                '{shutter_speed}': 'UnknownShutter',
             })
         
         # File info replacements
@@ -290,6 +327,30 @@ class PhotoRenameService:
         else:
             self._apply_collision_sequences(rename_operations, sequence_digits)
     
+    def _sort_groups_by_date_taken(self, group_operations: Dict[str, List[Dict]]) -> List[str]:
+        """Sort group names by their earliest date taken (chronological order)."""
+        group_dates = {}
+        
+        for group_name, operations in group_operations.items():
+            # Find the earliest date taken among all photos in this group
+            earliest_date = None
+            for operation in operations:
+                group = operation['group']
+                # Extract metadata to get date_taken
+                metadata = group.extract_metadata()
+                if metadata.dates.date_taken:
+                    if earliest_date is None or metadata.dates.date_taken < earliest_date:
+                        earliest_date = metadata.dates.date_taken
+            
+            group_dates[group_name] = earliest_date
+        
+        # Sort by date taken (None dates go to the end)
+        def sort_key(group_name):
+            date = group_dates[group_name]
+            return (date is None, date if date else datetime.min)
+        
+        return sorted(group_operations.keys(), key=sort_key)
+    
     def _apply_explicit_sequences(self, rename_operations: List[Dict], sequence_digits: int) -> None:
         """Apply sequences for operations that have explicit {sequence} placeholders."""
         # Group operations by pattern and photo group
@@ -302,7 +363,8 @@ class PhotoRenameService:
         
         # Apply sequences to each pattern group
         for pattern, group_operations in pattern_to_groups.items():
-            sorted_group_names = sorted(group_operations.keys())
+            # Sort groups by date taken (chronological order)
+            sorted_group_names = self._sort_groups_by_date_taken(group_operations)
             
             for seq_idx, group_name in enumerate(sorted_group_names, 1):
                 operations = group_operations[group_name]
@@ -351,7 +413,8 @@ class PhotoRenameService:
                     original_group_basename = operation['group'].basename
                     group_to_operations[original_group_basename].append(operation)
                 
-                sorted_group_names = sorted(group_to_operations.keys())
+                # Sort groups by date taken (chronological order)
+                sorted_group_names = self._sort_groups_by_date_taken(group_to_operations)
                 
                 for seq_idx, group_name in enumerate(sorted_group_names, 1):
                     group_operations = group_to_operations[group_name]
@@ -536,3 +599,152 @@ class PhotoRenameService:
         except Exception as e:
             self.logger.debug(f"XMP UUID writing failed for {file_path}: {e}")
             return False
+    
+    def _classify_groups(self, all_groups: List) -> tuple[List, List]:
+        """
+        Classify groups into valid and problematic ones.
+        
+        Returns:
+            Tuple of (valid_groups, problematic_groups)
+        """
+        valid_groups = []
+        problematic_groups = []
+        
+        for group in all_groups:
+            try:
+                # Check if group has basic requirements
+                if not group or not group.get_photos():
+                    problematic_groups.append((group, ErrorType.INVALID_FILE, "Empty group or no photos"))
+                    continue
+                
+                # Use the existing is_valid property to detect groups with only supplementary files
+                if not group.is_valid:
+                    problematic_groups.append((group, ErrorType.INVALID_FILE, "Group contains only sidecar/live photos"))
+                    continue
+                
+                # Check if any photos in the group have missing files
+                missing_files = [photo for photo in group.get_photos() 
+                               if not hasattr(photo, 'absolute_path') or not photo.absolute_path or not photo.absolute_path.exists()]
+                if missing_files:
+                    problematic_groups.append((group, ErrorType.INVALID_FILE, f"Missing {len(missing_files)} file(s)"))
+                    continue
+                
+                # Check if group has basic metadata extraction capability
+                try:
+                    group_metadata = group.extract_metadata()
+                    if not group_metadata:
+                        problematic_groups.append((group, ErrorType.MISSING_DATE, "No metadata available"))
+                        continue
+                except Exception as e:
+                    error_type = self.error_handler.classify_error(group=group, exception=e)
+                    problematic_groups.append((group, error_type, str(e)))
+                    continue
+                
+                # Group passed basic checks
+                valid_groups.append(group)
+                
+            except Exception as e:
+                # Unexpected error with group
+                error_type = self.error_handler.classify_error(group=group, exception=e)
+                problematic_groups.append((group, error_type, f"Unexpected error: {str(e)}"))
+        
+        return valid_groups, problematic_groups
+    
+    def _group_has_required_metadata(self, group, scheme: str) -> bool:
+        """
+        Check if a group has the required metadata for the naming scheme.
+        """
+        try:
+            # Check for date requirements in scheme
+            date_placeholders = ['{date}', '{datetime}', '{year}', '{month}', '{day}', '{hour}', '{minute}', '{second}']
+            needs_date = any(placeholder in scheme for placeholder in date_placeholders)
+            
+            if needs_date:
+                # Only filter out if we explicitly need date metadata
+                group_metadata = group.extract_metadata()
+                dates = getattr(group_metadata, 'dates', None) if group_metadata else None
+                if not dates or not dates.date_taken:
+                    return False
+            
+            # For schemes that don't require dates, all groups are valid
+            return True
+            
+        except Exception:
+            # If we can't extract metadata, it's invalid
+            return False
+    
+    def _handle_problematic_groups(self, problematic_groups: List[tuple], destination: Path) -> Dict[str, int]:
+        """
+        Handle problematic groups by moving them to appropriate error folders.
+        
+        Args:
+            problematic_groups: List of (group, error_type, reason) tuples
+            destination: Base destination directory
+            
+        Returns:
+            Dictionary with error handling statistics
+        """
+        error_stats = defaultdict(int)
+        
+        for group, error_type, reason in problematic_groups:
+            try:
+                results = self.error_handler.handle_error_group(
+                    group, error_type, str(destination), reason
+                )
+                
+                # Count successful moves
+                successful_moves = sum(1 for success in results.values() if success)
+                error_stats[error_type.value] += successful_moves
+                
+                self.logger.info(f"Moved {successful_moves} files from group {group.basename} to {error_type.value} folder")
+                
+            except Exception as e:
+                self.logger.error(f"Failed to handle problematic group {group.basename}: {e}")
+                error_stats['failed_to_move'] += len(group.get_photos())
+        
+        return dict(error_stats)
+    
+    def _handle_problematic_groups_in_source(self, problematic_groups: List[tuple]) -> Dict[str, int]:
+        """
+        Handle problematic groups by moving them to appropriate error folders in their source directories.
+        
+        Args:
+            problematic_groups: List of (group, error_type, reason) tuples
+            
+        Returns:
+            Dictionary with error handling statistics
+        """
+        error_stats = defaultdict(int)
+        
+        # Group problematic groups by their source directory
+        groups_by_source_dir = defaultdict(list)
+        
+        for group, error_type, reason in problematic_groups:
+            try:
+                # Find the source directory for this group (use the first photo's directory)
+                if group.get_photos():
+                    source_dir = str(group.get_photos()[0].absolute_path.parent)
+                    groups_by_source_dir[source_dir].append((group, error_type, reason))
+            except Exception as e:
+                self.logger.error(f"Failed to determine source directory for group {group.basename}: {e}")
+                error_stats['failed_to_move'] += len(group.get_photos()) if hasattr(group, 'get_photos') else 1
+        
+        # Handle each source directory separately
+        for source_dir, dir_groups in groups_by_source_dir.items():
+            for group, error_type, reason in dir_groups:
+                try:
+                    results = self.error_handler.handle_error_group(
+                        group, error_type, source_dir, reason
+                    )
+                    
+                    # Count successful moves
+                    successful_moves = sum(1 for success in results.values() if success)
+                    error_stats[error_type.value] += successful_moves
+                    
+                    self.logger.info(f"Moved {successful_moves} files from group {group.basename} to {error_type.value} folder in source directory")
+                    
+                except Exception as e:
+                    self.logger.error(f"Failed to handle problematic group {group.basename}: {e}")
+                    error_stats['failed_to_move'] += len(group.get_photos()) if hasattr(group, 'get_photos') else 1
+        
+        return dict(error_stats)

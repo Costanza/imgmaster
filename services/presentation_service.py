@@ -52,8 +52,22 @@ class PresentationService:
         """Display the results of a rename operation."""
         click.echo(f"\nProcessing {results['total_groups_processed']} photo groups...")
         
-        if results['invalid_groups_skipped'] > 0:
-            click.echo(f"Skipping {results['invalid_groups_skipped']} invalid photo groups (containing only sidecar/live photos)")
+        # Show information about problematic groups and filtering
+        if results.get('problematic_groups_moved', 0) > 0:
+            click.echo(f"Moved {results['problematic_groups_moved']} problematic groups to error folders")
+        
+        if results.get('invalid_metadata_skipped', 0) > 0:
+            click.echo(f"Skipping {results['invalid_metadata_skipped']} groups due to missing required metadata")
+        
+        # Show error summary if available
+        if results.get('error_summary'):
+            error_summary = results['error_summary']
+            total_errors = sum(error_summary.values())
+            if total_errors > 0:
+                click.echo(f"\nError folders created:")
+                for folder_name, count in error_summary.items():
+                    if count > 0:
+                        click.echo(f"  {folder_name}: {count} files")
         
         click.echo(f"\nRename Summary:")
         click.echo(f"Total files to rename: {results['total_files']}")
@@ -71,9 +85,9 @@ class PresentationService:
             success_verb = "copied" if results['copy_mode'] else "renamed"
             
             click.echo(f"\n📁 {action_verb} {results['total_files']} files...")
-            click.echo(f"✅ Successfully {success_verb} {results['processed_count']} files")
+            click.echo(f"✅ Successfully {success_verb} {results.get('processed_count', 0)} files")
             
-            if results['database_updated']:
+            if results.get('database_updated'):
                 click.echo(f"\nUpdating database...")
                 click.echo(f"Database updated: {results['destination']}")
             else:
