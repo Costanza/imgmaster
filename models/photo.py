@@ -62,6 +62,7 @@ class Photo:
     SIDECAR_FORMATS = {
         '.xmp',    # Adobe XMP metadata
         '.xml',    # Generic XML metadata
+        '.aae',    # Apple adjustment data
         '.thm',    # Thumbnail files (often from cameras)
         '.pp3',    # RawTherapee processing parameters
         '.dop',    # DxO Optics Pro settings
