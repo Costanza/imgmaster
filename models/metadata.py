@@ -272,8 +272,8 @@ class MetadataExtractor:
                     camera.lens_model = exif_data.get(42036)  # LensModel
                     camera.serial_number = exif_data.get(42033)  # SerialNumber
                     
-                    # Date info
-                    date_str = exif_data.get(36868) or exif_data.get(306)  # DateTimeOriginal or DateTime
+                    # Date info - ONLY use DateTimeOriginal, never DateTime (modification date)
+                    date_str = exif_data.get(36868)  # DateTimeOriginal ONLY
                     if date_str:
                         try:
                             dates.date_taken = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
@@ -326,8 +326,8 @@ class MetadataExtractor:
                 camera.lens_model = str(tags.get('EXIF LensModel', '')).strip() or None
                 camera.serial_number = str(tags.get('EXIF BodySerialNumber', '')).strip() or None
                 
-                # Date info
-                date_str = str(tags.get('EXIF DateTimeOriginal', '')) or str(tags.get('Image DateTime', ''))
+                # Date info - ONLY use DateTimeOriginal, never DateTime (modification date)
+                date_str = str(tags.get('EXIF DateTimeOriginal', ''))
                 if date_str and date_str != '':
                     try:
                         dates.date_taken = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")

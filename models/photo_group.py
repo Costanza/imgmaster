@@ -1,5 +1,6 @@
 import json
 import logging
+import uuid
 from typing import Dict, List, Set, Optional
 from collections import defaultdict
 from pathlib import Path
@@ -21,14 +22,16 @@ class PhotoGroup:
     that have the same basename but different extensions.
     """
     
-    def __init__(self, basename: str):
+    def __init__(self, basename: str, group_uuid: str = None):
         """
         Initialize a PhotoGroup with a given basename.
         
         Args:
             basename: The base filename (without extension) for this group
+            group_uuid: Optional UUID for this group. If not provided, a new UUID will be generated.
         """
         self.basename = basename
+        self.uuid = group_uuid or str(uuid.uuid4())
         self._photos: Dict[str, Photo] = {}  # extension -> Photo mapping
         self._metadata_cache: Optional[PhotoMetadataWithSource] = None  # Cached aggregated metadata
         self._metadata_extractor = MetadataExtractor()
@@ -405,12 +408,13 @@ class PhotoGroupManager:
         """Initialize an empty PhotoGroupManager."""
         self._groups: Dict[str, PhotoGroup] = {}
     
-    def add_photo(self, photo: Photo) -> PhotoGroup:
+    def add_photo(self, photo: Photo, group_uuid: str = None) -> PhotoGroup:
         """
         Add a photo to the appropriate group based on its basename.
         
         Args:
             photo: The Photo instance to add
+            group_uuid: Optional UUID for the group if creating a new one
             
         Returns:
             The PhotoGroup that the photo was added to
@@ -418,7 +422,7 @@ class PhotoGroupManager:
         basename = photo.basename
         
         if basename not in self._groups:
-            self._groups[basename] = PhotoGroup(basename)
+            self._groups[basename] = PhotoGroup(basename, group_uuid)
         
         self._groups[basename].add_photo(photo)
         return self._groups[basename]
@@ -681,6 +685,7 @@ class PhotoGroupManager:
             
             group_data = {
                 "basename": group.basename,
+                "uuid": group.uuid,
                 "count": group.count,
                 "is_valid": group.is_valid,
                 "has_only_supplementary_files": group.has_only_supplementary_files,
@@ -774,6 +779,11 @@ class PhotoGroupManager:
                 logger.warning(f"Skipping group {basename}: missing photos data")
                 continue
             
+            # Extract UUID if available, otherwise generate new one for backward compatibility
+            group_uuid = group_data.get("uuid")
+            if not group_uuid:
+                logger.info(f"No UUID found for group {basename}, generating new UUID")
+            
             for photo_data in group_data["photos"]:
                 try:
                     # Recreate Photo objects from saved data
@@ -783,7 +793,7 @@ class PhotoGroupManager:
                         # Restore history if available
                         if "history" in photo_data:
                             photo.history = photo_data["history"]
-                        manager.add_photo(photo)
+                        manager.add_photo(photo, group_uuid)
                     else:
                         logger.warning(f"Photo file not found: {photo_path}")
                 except Exception as e:

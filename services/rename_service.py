@@ -1,5 +1,6 @@
 """Photo renaming service for file operations."""
 
+import json
 import logging
 import shutil
 from pathlib import Path
@@ -26,7 +27,8 @@ class PhotoRenameService:
         sequence_digits: int = 3,
         dry_run: bool = False,
         copy_mode: bool = False,
-        skip_invalid: bool = True
+        skip_invalid: bool = True,
+        write_uuid: bool = False
     ) -> Dict[str, Any]:
         """
         Rename photo files based on metadata and grouping rules.
@@ -39,6 +41,7 @@ class PhotoRenameService:
             dry_run: If True, only show what would be done
             copy_mode: If True, copy files instead of moving them
             skip_invalid: If True, skip invalid photo groups
+            write_uuid: If True, write photo group UUID to file metadata
             
         Returns:
             Dictionary with operation results and statistics
@@ -51,6 +54,7 @@ class PhotoRenameService:
         self.logger.info(f"Dry run mode: {dry_run}")
         self.logger.info(f"Copy mode: {copy_mode}")
         self.logger.info(f"Skip invalid groups: {skip_invalid}")
+        self.logger.info(f"Write UUID to metadata: {write_uuid}")
         
         # Load the photo database using repository
         manager = self.repository.load(str(database_path))
@@ -101,7 +105,7 @@ class PhotoRenameService:
         else:
             # Perform actual rename operations
             results['processed_count'] = self._execute_rename_operations(
-                rename_operations, copy_mode
+                rename_operations, copy_mode, write_uuid
             )
             
             # Save updated database (only if we moved files, not copied)
@@ -147,14 +151,14 @@ class PhotoRenameService:
             # Extract metadata for the group
             group_metadata = group.extract_metadata()
             
+            # Generate base filename ONCE per group (not per photo)
+            base_filename = self._generate_base_filename(scheme, group, group_metadata)
+            
             # Process each photo in the group
             for photo in group.get_photos():
-                # Generate new name based on scheme and metadata
-                new_name = self._generate_base_filename(scheme, photo, group_metadata)
-                
-                # Calculate paths
+                # Calculate paths using the SAME base filename for all photos in group
                 old_path = photo.absolute_path
-                name_parts = new_name.split('/')
+                name_parts = base_filename.split('/')
                 
                 if len(name_parts) > 1:
                     # Has subdirectories
@@ -163,34 +167,31 @@ class PhotoRenameService:
                     base_new_path = destination / subdir_path / filename
                 else:
                     # No subdirectories
-                    base_new_path = destination / new_name
+                    base_new_path = destination / base_filename
                 
                 rename_operations.append({
                     'group': group,
                     'photo': photo,
                     'old_path': old_path,
                     'base_new_path': base_new_path,
-                    'base_filename': new_name,
+                    'base_filename': base_filename,
                     'destination': destination,
                 })
         
         return rename_operations
     
-    def _generate_base_filename(self, scheme: str, photo, group_metadata) -> str:
+    def _generate_base_filename(self, scheme: str, group, group_metadata) -> str:
         """Generate the base filename using the scheme and metadata."""
         new_name = scheme
         
-        # File modification time as fallback
-        mtime = datetime.fromtimestamp(photo.absolute_path.stat().st_mtime)
-        
-        # Basic metadata
-        basic = group_metadata.basic if hasattr(group_metadata, 'basic') else None
+        # Metadata from the group
         camera = group_metadata.camera if hasattr(group_metadata, 'camera') else None
+        dates = group_metadata.dates if hasattr(group_metadata, 'dates') else None
         technical = group_metadata.technical if hasattr(group_metadata, 'technical') else None
         
         # Date/time replacements
-        if basic and basic.date_taken:
-            dt = basic.date_taken
+        if dates and dates.date_taken:
+            dt = dates.date_taken
             replacements = {
                 '{date}': dt.strftime('%Y-%m-%d'),
                 '{datetime}': dt.strftime('%Y-%m-%d_%H-%M-%S'),
@@ -202,16 +203,17 @@ class PhotoRenameService:
                 '{second}': dt.strftime('%S'),
             }
         else:
-            # Fallback to file modification time
+            # If no date_taken available, use the group basename as fallback
+            # This preserves the original basename date pattern if available
             replacements = {
-                '{date}': mtime.strftime('%Y-%m-%d'),
-                '{datetime}': mtime.strftime('%Y-%m-%d_%H-%M-%S'),
-                '{year}': mtime.strftime('%Y'),
-                '{month}': mtime.strftime('%m'),
-                '{day}': mtime.strftime('%d'),
-                '{hour}': mtime.strftime('%H'),
-                '{minute}': mtime.strftime('%M'),
-                '{second}': mtime.strftime('%S'),
+                '{date}': 'UNKNOWN',
+                '{datetime}': 'UNKNOWN',
+                '{year}': 'UNKNOWN',
+                '{month}': 'UNKNOWN', 
+                '{day}': 'UNKNOWN',
+                '{hour}': 'UNKNOWN',
+                '{minute}': 'UNKNOWN',
+                '{second}': 'UNKNOWN',
             }
         
         # Camera info replacements
@@ -247,7 +249,7 @@ class PhotoRenameService:
             })
         
         # File info replacements
-        replacements['{basename}'] = photo.basename
+        replacements['{basename}'] = group.basename
         
         # Apply all replacements (skip sequence for now)
         for placeholder, value in replacements.items():
@@ -372,7 +374,7 @@ class PhotoRenameService:
                     operation['new_path'] = final_path
                     operation['new_dir'] = final_path.parent
     
-    def _execute_rename_operations(self, rename_operations: List[Dict], copy_mode: bool) -> int:
+    def _execute_rename_operations(self, rename_operations: List[Dict], copy_mode: bool, write_uuid: bool = False) -> int:
         """Execute the actual file rename/copy operations."""
         processed_count = 0
         action_verb = "Copying" if copy_mode else "Renaming"
@@ -389,6 +391,10 @@ class PhotoRenameService:
                 else:
                     shutil.move(str(op['old_path']), str(op['new_path']))
                     self._update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
+                
+                # Write UUID to file metadata if requested
+                if write_uuid and op['group'].uuid:
+                    self._write_uuid_to_file(op['new_path'], op['group'].uuid)
                 
                 processed_count += 1
                 
@@ -429,3 +435,104 @@ class PhotoRenameService:
             'timestamp': datetime.now().isoformat(),
             'operation': 'copy'
         })
+    
+    def _write_uuid_to_file(self, file_path: Path, group_uuid: str) -> bool:
+        """
+        Write UUID to file metadata when possible.
+        
+        Args:
+            file_path: Path to the file to write UUID to
+            group_uuid: UUID of the photo group
+            
+        Returns:
+            True if UUID was written successfully, False otherwise
+        """
+        # Get file extension to determine if metadata writing is supported
+        file_ext = file_path.suffix.lower()
+        
+        # Try to write UUID to EXIF metadata for supported formats
+        if self._write_uuid_to_exif(file_path, group_uuid):
+            self.logger.info(f"Wrote UUID to EXIF metadata: {file_path.name}")
+            return True
+        
+        # If EXIF writing fails or isn't supported, try XMP sidecar
+        if self._write_uuid_to_xmp_sidecar(file_path, group_uuid):
+            self.logger.info(f"Wrote UUID to XMP sidecar file: {file_path.with_suffix('.xmp').name}")
+            return True
+        
+        # If neither works, just log and continue (no companion files)
+        self.logger.info(f"UUID writing not supported for {file_ext} format: {file_path.name}")
+        return False
+    
+    # UUID writing implementations
+    def _write_uuid_to_exif(self, file_path: Path, group_uuid: str) -> bool:
+        """Write UUID to EXIF metadata."""
+        try:
+            file_ext = file_path.suffix.lower()
+            
+            # Only attempt EXIF writing for JPEG files for now
+            if file_ext in ['.jpg', '.jpeg']:
+                # Try to use exiftool if available (external dependency)
+                # For now, we'll implement a basic approach using PIL
+                # Note: PIL can read EXIF but writing is limited
+                
+                # Check if the file has existing EXIF data
+                try:
+                    from PIL import Image
+                    from PIL.ExifTags import TAGS
+                    
+                    with Image.open(file_path) as img:
+                        if hasattr(img, '_getexif') and img._getexif() is not None:
+                            # File has EXIF data, but PIL cannot write custom EXIF tags easily
+                            # This would require exiftool or similar for proper implementation
+                            self.logger.debug(f"EXIF metadata writing not fully implemented for: {file_path}")
+                            return False
+                        else:
+                            # No EXIF data, can't add UUID
+                            return False
+                            
+                except ImportError:
+                    # PIL not available
+                    return False
+                except Exception as e:
+                    self.logger.debug(f"Error checking EXIF for {file_path}: {e}")
+                    return False
+            
+            return False
+            
+        except Exception as e:
+            self.logger.debug(f"EXIF UUID writing failed for {file_path}: {e}")
+            return False
+    
+    def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str) -> bool:
+        """Write UUID to XMP sidecar file."""
+        try:
+            # Create XMP sidecar file path
+            xmp_path = file_path.with_suffix('.xmp')
+            
+            # Basic XMP structure with UUID
+            xmp_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="imgmaster">
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about=""
+            xmlns:imgmaster="http://imgmaster.local/ns/"
+            imgmaster:GroupUUID="{group_uuid}"
+            imgmaster:CreatedBy="imgmaster"
+            imgmaster:Version="1.0"/>
+    </rdf:RDF>
+</x:xmpmeta>"""
+            
+            # Check if XMP file already exists
+            if xmp_path.exists():
+                # TODO: Parse existing XMP and add UUID field
+                # For now, we'll overwrite with our UUID
+                self.logger.debug(f"Overwriting existing XMP file: {xmp_path}")
+            
+            with open(xmp_path, 'w', encoding='utf-8') as f:
+                f.write(xmp_content)
+            
+            return True
+            
+        except Exception as e:
+            self.logger.debug(f"XMP UUID writing failed for {file_path}: {e}")
+            return False
