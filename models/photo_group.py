@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set, Optional, Any
 from collections import defaultdict
 from pathlib import Path
 
@@ -11,7 +11,8 @@ from .metadata import (
     CameraInfo, CameraInfoWithSource, 
     DateInfo, DateInfoWithSource,
     TechnicalInfo, TechnicalInfoWithSource,
-    KeywordInfo, KeywordInfoWithSource
+    KeywordInfo, KeywordInfoWithSource,
+    DateExtractionSummary
 )
 
 
@@ -23,19 +24,20 @@ class PhotoGroup:
     that have the same basename but different extensions.
     """
     
-    def __init__(self, basename: str, group_uuid: Optional[str] = None):
+    def __init__(self, basename: str, group_uuid: Optional[str] = None, metadata_extractor: Optional[MetadataExtractor] = None):
         """
         Initialize a PhotoGroup with a given basename.
         
         Args:
             basename: The base filename (without extension) for this group
             group_uuid: Optional UUID for this group. If not provided, a new UUID will be generated.
+            metadata_extractor: Optional MetadataExtractor instance. If not provided, a new one will be created.
         """
         self.basename = basename
         self.uuid = group_uuid or str(uuid.uuid4())
         self._photos: Dict[str, Photo] = {}  # extension -> Photo mapping
         self._metadata_cache: Optional[PhotoMetadataWithSource] = None  # Cached aggregated metadata
-        self._metadata_extractor = MetadataExtractor()
+        self._metadata_extractor = metadata_extractor or MetadataExtractor()
         
     def add_photo(self, photo: Photo) -> None:
         """
@@ -437,6 +439,8 @@ class PhotoGroupManager:
     def __init__(self):
         """Initialize an empty PhotoGroupManager."""
         self._groups: Dict[str, PhotoGroup] = {}
+        self.date_extraction_summary = DateExtractionSummary()
+        self._shared_metadata_extractor = MetadataExtractor(self.date_extraction_summary)
     
     def add_photo(self, photo: Photo, group_uuid: Optional[str] = None) -> PhotoGroup:
         """
@@ -452,7 +456,7 @@ class PhotoGroupManager:
         basename = photo.basename
         
         if basename not in self._groups:
-            self._groups[basename] = PhotoGroup(basename, group_uuid)
+            self._groups[basename] = PhotoGroup(basename, group_uuid, self._shared_metadata_extractor)
         
         self._groups[basename].add_photo(photo)
         return self._groups[basename]
@@ -585,6 +589,65 @@ class PhotoGroupManager:
         
         logger.info(f"Metadata extraction completed for {processed} groups")
     
+    def scan_directory(self, directory: Path, recursive: bool = True) -> int:
+        """
+        Scan a directory for photo files and add them to groups.
+        
+        Args:
+            directory: Directory path to scan
+            recursive: Whether to scan subdirectories recursively
+            
+        Returns:
+            Number of photos found and added
+            
+        Raises:
+            FileNotFoundError: If directory doesn't exist
+            ValueError: If path is not a directory
+        """
+        from models.photo import Photo
+        
+        # Validate input
+        directory = Path(directory)
+        if not directory.exists():
+            raise FileNotFoundError(f"Directory not found: {directory}")
+        if not directory.is_dir():
+            raise ValueError(f"Path is not a directory: {directory}")
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"Scanning directory: {directory} (recursive={recursive})")
+        
+        photos_found = 0
+        supported_formats = Photo.get_all_supported_formats()
+        
+        # Get file iterator based on recursive flag
+        if recursive:
+            file_iterator = directory.rglob('*')
+        else:
+            file_iterator = directory.iterdir()
+        
+        for file_path in file_iterator:
+            if file_path.is_file():
+                extension = file_path.suffix.lower()
+                
+                # Check if this is a supported photo format
+                if extension in supported_formats:
+                    try:
+                        # Create Photo instance
+                        photo = Photo(file_path)
+                        
+                        # Add to appropriate group
+                        self.add_photo(photo)
+                        photos_found += 1
+                        
+                        if photos_found % 100 == 0:  # Log progress every 100 files
+                            logger.debug(f"Found {photos_found} photos so far...")
+                            
+                    except Exception as e:
+                        logger.warning(f"Failed to process file {file_path}: {e}")
+        
+        logger.info(f"Scan completed: found {photos_found} photos in {len(self._groups)} groups")
+        return photos_found
+    
     @property
     def total_groups(self) -> int:
         """Get the total number of groups."""
@@ -605,91 +668,59 @@ class PhotoGroupManager:
         """Get the total number of invalid groups."""
         return len(self.get_invalid_groups())
     
-    def __len__(self) -> int:
-        """Return the number of groups."""
-        return len(self._groups)
-    
-    def __contains__(self, basename: str) -> bool:
-        """Check if a basename has a group."""
-        return basename in self._groups
-    
-    def __iter__(self):
-        """Iterate over all groups."""
-        return iter(self._groups.values())
-    
-    def __getitem__(self, basename: str) -> PhotoGroup:
-        """Get a group by basename using dictionary syntax."""
-        return self._groups[basename]
-    
-    def __str__(self) -> str:
-        """String representation of the PhotoGroupManager."""
-        return f"PhotoGroupManager({self.total_groups} groups, {self.total_photos} photos)"
-    
-    def __repr__(self) -> str:
-        """Detailed string representation of the PhotoGroupManager."""
-        return f"PhotoGroupManager(groups={list(self._groups.keys())})"
-    
-    def scan_directory(self, directory_path: str | Path, recursive: bool = True) -> int:
-        """
-        Scan a directory for photo files and add them to groups.
+    def _get_date_extraction_summary_dict(self) -> Dict[str, Any]:
+        """Convert date extraction summary to dictionary format."""
+        if not hasattr(self, 'date_extraction_summary') or self.date_extraction_summary is None:
+            return {
+                'total_files_processed': 0,
+                'successful_extractions': 0,
+                'failed_extractions': 0,
+                'failure_summary': {}
+            }
         
-        Args:
-            directory_path: Path to the directory to scan
-            recursive: Whether to scan subdirectories recursively
+        summary = self.date_extraction_summary
+        
+        # Convert to dictionary for JSON serialization
+        result = {
+            'total_files_processed': summary.total_files_processed,
+            'successful_extractions': summary.successful_extractions,
+            'failed_extractions': summary.failed_extractions,
+            'failure_summary': {}
+        }
+        
+        if summary.failures:
+            # Group failures by error reason
+            from collections import defaultdict
+            failures_by_reason = defaultdict(list)
+            failures_by_extension = defaultdict(int)
             
-        Returns:
-            The number of photos found and added
+            for failure in summary.failures:
+                failure_dict = {
+                    'file_path': failure.file_path,
+                    'group_basename': failure.group_basename,
+                    'file_extension': failure.file_extension,
+                    'attempted_methods': failure.attempted_methods or []
+                }
+                failures_by_reason[failure.error_reason].append(failure_dict)
+                failures_by_extension[failure.file_extension or 'unknown'] += 1
             
-        Raises:
-            FileNotFoundError: If the directory doesn't exist
-            PermissionError: If the directory can't be accessed
-        """
-        logger = logging.getLogger(__name__)
-        directory = Path(directory_path)
+            result['failure_summary'] = {
+                'by_error_reason': dict(failures_by_reason),
+                'by_file_extension': dict(failures_by_extension),
+                'total_unique_error_reasons': len(failures_by_reason),
+                'sample_failures': [
+                    {
+                        'file_path': f.file_path,
+                        'error_reason': f.error_reason,
+                        'file_extension': f.file_extension,
+                        'attempted_methods': f.attempted_methods or []
+                    }
+                    for f in (summary.failures[:10] if summary.failures else [])
+                ]
+            }
         
-        if not directory.exists():
-            raise FileNotFoundError(f"Directory not found: {directory}")
-        
-        if not directory.is_dir():
-            raise ValueError(f"Path is not a directory: {directory}")
-        
-        logger.info(f"Starting scan of directory: {directory}")
-        logger.info(f"Recursive scan: {recursive}")
-        
-        photos_found = 0
-        errors_encountered = 0
-        supported_formats = Photo.get_all_supported_formats()
-        
-        # Choose the appropriate glob pattern
-        pattern = "**/*" if recursive else "*"
-        
-        for file_path in directory.glob(pattern):
-            if not file_path.is_file():
-                continue
-            
-            # Check if the file extension is supported
-            file_extension = file_path.suffix.lower()
-            if file_extension not in supported_formats:
-                continue
-            
-            try:
-                photo = Photo(file_path)
-                self.add_photo(photo)
-                photos_found += 1
-                
-                if photos_found % 100 == 0:  # Log progress every 100 files
-                    logger.info(f"Processed {photos_found} photos so far...")
-                    
-            except Exception as e:
-                errors_encountered += 1
-                logger.warning(f"Failed to process file {file_path}: {e}")
-        
-        logger.info(f"Scan completed. Found {photos_found} photos in {self.total_groups} groups")
-        if errors_encountered > 0:
-            logger.warning(f"Encountered {errors_encountered} errors during scan")
-        
-        return photos_found
-    
+        return result
+
     def to_dict(self) -> Dict:
         """
         Convert the PhotoGroupManager to a dictionary for JSON serialization.
@@ -704,7 +735,8 @@ class PhotoGroupManager:
                 "total_invalid_groups": self.total_invalid_groups,
                 "total_photos": self.total_photos,
                 "created_by": "imgmaster",
-                "version": "1.0"
+                "version": "1.0",
+                "date_extraction_summary": self._get_date_extraction_summary_dict()
             },
             "groups": {}
         }

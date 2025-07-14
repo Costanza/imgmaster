@@ -24,6 +24,50 @@ except ImportError:
 
 
 @dataclass
+class DateExtractionFailure:
+    """Information about a failed date extraction."""
+    file_path: str
+    group_basename: Optional[str] = None
+    error_reason: str = ""
+    attempted_methods: Optional[List[str]] = None
+    file_extension: Optional[str] = None
+    
+    def __post_init__(self):
+        """Initialize attempted_methods as empty list if None."""
+        if self.attempted_methods is None:
+            self.attempted_methods = []
+
+
+@dataclass
+class DateExtractionSummary:
+    """Summary of date extraction results during database building."""
+    total_files_processed: int = 0
+    successful_extractions: int = 0
+    failed_extractions: int = 0
+    failures: Optional[List[DateExtractionFailure]] = None
+    
+    def __post_init__(self):
+        """Initialize failures as empty list if None."""
+        if self.failures is None:
+            self.failures = []
+    
+    def add_failure(self, failure: DateExtractionFailure) -> None:
+        """Add a failed extraction to the summary."""
+        if self.failures is None:
+            self.failures = []
+        self.failures.append(failure)
+        self.failed_extractions += 1
+    
+    def add_success(self) -> None:
+        """Record a successful extraction."""
+        self.successful_extractions += 1
+    
+    def increment_processed(self) -> None:
+        """Increment total files processed."""
+        self.total_files_processed += 1
+
+
+@dataclass
 class KeywordInfo:
     """Keywords/tags extracted from metadata."""
     keywords: Optional[List[str]] = None
@@ -256,15 +300,30 @@ class PhotoMetadataWithSource:
 class MetadataExtractor:
     """Extract metadata from photo files and sidecar files."""
     
-    def __init__(self):
+    def __init__(self, date_extraction_summary: Optional[DateExtractionSummary] = None):
         self.logger = logging.getLogger(__name__)
+        self.date_extraction_summary = date_extraction_summary
     
     def _is_raw_format(self, photo_path: Path) -> bool:
         """Check if the file is a RAW format."""
         # Import here to avoid circular imports
         from models.photo import Photo
         return photo_path.suffix.lower() in Photo.RAW_FORMATS
-        
+    
+    def _supports_exifread(self, photo_path: Path) -> bool:
+        """Check if the file format is supported by exifread."""
+        # exifread supports TIFF, JPEG, and some RAW formats
+        # It does NOT support XMP, MOV, MP4, HEIC, AAE, etc.
+        supported_exts = {'.jpg', '.jpeg', '.tif', '.tiff', '.cr2', '.cr3', '.nef', '.arw', '.dng', '.raf', '.orf', '.rw2', '.pef', '.srw'}
+        return photo_path.suffix.lower() in supported_exts
+    
+    def _supports_pil(self, photo_path: Path) -> bool:
+        """Check if the file format is supported by PIL."""
+        # PIL supports JPEG, TIFF, PNG, BMP, GIF, WebP, etc.
+        # It does NOT support videos (MOV, MP4), RAW files, XMP, AAE, etc.
+        supported_exts = {'.jpg', '.jpeg', '.tif', '.tiff', '.png', '.bmp', '.gif', '.webp', '.ico'}
+        return photo_path.suffix.lower() in supported_exts
+    
     def extract_from_photo(self, photo_path: Path) -> PhotoMetadata:
         """
         Extract metadata from a photo file using EXIF data.
@@ -277,6 +336,9 @@ class MetadataExtractor:
         """
         if not EXIF_AVAILABLE:
             self.logger.warning("EXIF libraries not available - cannot extract metadata")
+            self._record_date_extraction_failure(
+                photo_path, "EXIF libraries not available", []
+            )
             return PhotoMetadata(
                 camera=CameraInfo(),
                 dates=DateInfo(),
@@ -285,25 +347,51 @@ class MetadataExtractor:
                 source_file=str(photo_path)
             )
         
+        attempted_methods = []
+        metadata = None
+        
         try:
             # For HEIC files and RAW files, try exiftool first (best for these formats)
             if photo_path.suffix.lower() in ['.heic', '.heif'] or self._is_raw_format(photo_path):
+                attempted_methods.append("exiftool")
                 metadata = self._extract_with_exiftool(photo_path)
                 if not metadata.is_empty():
+                    self._record_date_extraction_result(photo_path, metadata)
                     return metadata
             
-            # Try PIL first (works well with JPEG, TIFF)
-            metadata = self._extract_with_pil(photo_path)
-            if not metadata.is_empty():
+            # Try PIL on supported formats (works well with JPEG, TIFF, PNG)
+            if self._supports_pil(photo_path):
+                attempted_methods.append("PIL")
+                metadata = self._extract_with_pil(photo_path)
+                if not metadata.is_empty():
+                    self._record_date_extraction_result(photo_path, metadata)
+                    return metadata
+            
+            # Only try exifread on supported formats to avoid "File format not recognized" warnings
+            if self._supports_exifread(photo_path):
+                attempted_methods.append("exifread")
+                metadata = self._extract_with_exifread(photo_path)
+                metadata.source_file = str(photo_path)
+                self._record_date_extraction_result(photo_path, metadata)
                 return metadata
             
-            # Fallback to exifread (works with some RAW files)
-            metadata = self._extract_with_exifread(photo_path)
-            metadata.source_file = str(photo_path)
-            return metadata
+            # Return empty metadata for unsupported formats
+            self._record_date_extraction_failure(
+                photo_path, "File format not supported by any extraction method", attempted_methods
+            )
+            return PhotoMetadata(
+                camera=CameraInfo(),
+                dates=DateInfo(),
+                technical=TechnicalInfo(),
+                keywords=KeywordInfo(),
+                source_file=str(photo_path)
+            )
             
         except Exception as e:
             self.logger.warning(f"Failed to extract metadata from {photo_path}: {e}")
+            self._record_date_extraction_failure(
+                photo_path, f"Exception during extraction: {str(e)}", attempted_methods
+            )
             return PhotoMetadata(
                 camera=CameraInfo(),
                 dates=DateInfo(),
@@ -324,19 +412,33 @@ class MetadataExtractor:
                 exif_data = img._getexif()
                 
                 if exif_data:
-                    # Camera info
-                    camera.make = exif_data.get(271)  # Make
-                    camera.model = exif_data.get(272)  # Model
-                    camera.lens_model = exif_data.get(42036)  # LensModel
-                    camera.serial_number = exif_data.get(42033)  # SerialNumber
+                    # Camera info - convert values to strings safely
+                    make_value = exif_data.get(271)  # Make
+                    camera.make = self._convert_exif_value_to_string(make_value) if make_value else None
+                    
+                    model_value = exif_data.get(272)  # Model
+                    camera.model = self._convert_exif_value_to_string(model_value) if model_value else None
+                    
+                    lens_value = exif_data.get(42036)  # LensModel
+                    camera.lens_model = self._convert_exif_value_to_string(lens_value) if lens_value else None
+                    
+                    serial_value = exif_data.get(42033)  # SerialNumber
+                    camera.serial_number = self._convert_exif_value_to_string(serial_value) if serial_value else None
                     
                     # Date info - ONLY use DateTimeOriginal, never DateTime (modification date)
                     date_str = exif_data.get(36868)  # DateTimeOriginal ONLY
                     if date_str:
-                        try:
-                            dates.date_taken = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
-                        except ValueError:
-                            pass
+                        # Convert to string safely
+                        date_string = self._convert_exif_value_to_string(date_str)
+                        if date_string:
+                            try:
+                                dates.date_taken = datetime.strptime(date_string, "%Y:%m:%d %H:%M:%S")
+                            except ValueError:
+                                # Try alternative formats
+                                try:
+                                    dates.date_taken = datetime.strptime(date_string, "%Y:%m:%d %H:%M:%S.%f")
+                                except ValueError:
+                                    pass
                     
                     # Technical info
                     technical.iso = exif_data.get(34855)  # ISOSpeedRatings
@@ -361,14 +463,19 @@ class MetadataExtractor:
                     # Keywords (from UserComment or XPKeywords)
                     user_comment = exif_data.get(37510)  # UserComment
                     if user_comment:
-                        # Extract keywords from UserComment if available
-                        keywords.keywords = [kw.strip() for kw in user_comment.split(',') if kw.strip()]
+                        # Convert to string if it's bytes or tuple
+                        comment_str = self._convert_exif_value_to_string(user_comment)
+                        if comment_str:
+                            keywords.keywords = [kw.strip() for kw in comment_str.split(',') if kw.strip()]
                     
                     if not keywords.keywords:
                         # Fallback to XPKeywords if UserComment does not exist or is empty
                         xp_keywords = exif_data.get(42034)  # XPKeywords
                         if xp_keywords:
-                            keywords.keywords = [kw.strip() for kw in xp_keywords.split(';') if kw.strip()]
+                            # Convert to string if it's bytes or tuple
+                            keywords_str = self._convert_exif_value_to_string(xp_keywords)
+                            if keywords_str:
+                                keywords.keywords = [kw.strip() for kw in keywords_str.split(';') if kw.strip()]
                         
         except Exception as e:
             self.logger.debug(f"PIL extraction failed for {photo_path}: {e}")
@@ -736,3 +843,68 @@ class MetadataExtractor:
         except Exception:
             pass
         return None
+    
+    def _record_date_extraction_result(self, photo_path: Path, metadata: PhotoMetadata) -> None:
+        """Record the result of date extraction."""
+        if self.date_extraction_summary is not None:
+            self.date_extraction_summary.increment_processed()
+            
+            # Check if date was successfully extracted
+            if metadata.dates and metadata.dates.date_taken:
+                self.date_extraction_summary.add_success()
+            else:
+                # Date extraction failed
+                failure = DateExtractionFailure(
+                    file_path=str(photo_path),
+                    error_reason="No date found in metadata",
+                    file_extension=photo_path.suffix.lower(),
+                    attempted_methods=["metadata_extraction"]
+                )
+                self.date_extraction_summary.add_failure(failure)
+
+    def _record_date_extraction_failure(self, photo_path: Path, error_reason: str, attempted_methods: List[str]) -> None:
+        """Record a failed date extraction attempt."""
+        if self.date_extraction_summary is not None:
+            self.date_extraction_summary.increment_processed()
+            
+            failure = DateExtractionFailure(
+                file_path=str(photo_path),
+                error_reason=error_reason,
+                file_extension=photo_path.suffix.lower(),
+                attempted_methods=attempted_methods
+            )
+            self.date_extraction_summary.add_failure(failure)
+    
+    def _convert_exif_value_to_string(self, value) -> Optional[str]:
+        """Convert EXIF value (which can be string, bytes, tuple, etc.) to string."""
+        if value is None:
+            return None
+        
+        # If it's already a string, return it
+        if isinstance(value, str):
+            return value
+        
+        # If it's bytes, decode it
+        if isinstance(value, bytes):
+            try:
+                # Try UTF-8 first, then fallback to latin-1
+                return value.decode('utf-8').strip('\x00')
+            except UnicodeDecodeError:
+                try:
+                    return value.decode('latin-1').strip('\x00')
+                except UnicodeDecodeError:
+                    return None
+        
+        # If it's a tuple, try to convert elements to string
+        if isinstance(value, tuple):
+            try:
+                # Join tuple elements as strings
+                return ' '.join(str(item) for item in value if item is not None)
+            except Exception:
+                return None
+        
+        # For other types, try to convert to string
+        try:
+            return str(value)
+        except Exception:
+            return None
