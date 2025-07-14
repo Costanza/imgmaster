@@ -630,22 +630,36 @@ class PhotoGroupManager:
         errors_encountered = 0
         supported_formats = Photo.get_all_supported_formats()
         
+        logger.info(f"Supported formats: {sorted(supported_formats)}")
+        
         # Choose the appropriate glob pattern
         pattern = "**/*" if recursive else "*"
         
+        files_checked = 0
         for file_path in directory.glob(pattern):
             if not file_path.is_file():
                 continue
             
+            files_checked += 1
+            if files_checked <= 5:  # Log first 5 files for debugging
+                logger.info(f"Checking file: {file_path}")
+            
             # Check if the file extension is supported
             file_extension = file_path.suffix.lower()
             if file_extension not in supported_formats:
+                if files_checked <= 5:  # Log rejection reason for first 5 files
+                    logger.info(f"Skipping {file_path}: unsupported extension '{file_extension}'")
                 continue
             
             try:
+                if files_checked <= 5:  # Log attempt for first 5 files
+                    logger.info(f"Attempting to create Photo object for: {file_path}")
                 photo = Photo(file_path)
                 self.add_photo(photo)
                 photos_found += 1
+                
+                if photos_found <= 5:  # Log success for first 5 photos
+                    logger.info(f"Successfully added photo: {file_path}")
                 
                 if photos_found % 100 == 0:  # Log progress every 100 files
                     logger.info(f"Processed {photos_found} photos so far...")
@@ -654,7 +668,8 @@ class PhotoGroupManager:
                 errors_encountered += 1
                 logger.warning(f"Failed to process file {file_path}: {e}")
         
-        logger.info(f"Scan completed. Found {photos_found} photos in {self.total_groups} groups")
+        logger.info(f"Scan completed. Total files checked: {files_checked}")
+        logger.info(f"Found {photos_found} photos in {self.total_groups} groups")
         if errors_encountered > 0:
             logger.warning(f"Encountered {errors_encountered} errors during scan")
         

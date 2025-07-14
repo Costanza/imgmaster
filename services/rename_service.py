@@ -3,6 +3,7 @@
 import json
 import logging
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import List, Dict, Any
 from datetime import datetime
@@ -20,6 +21,8 @@ class PhotoRenameService:
         self.logger = logging.getLogger(__name__)
         self.repository = repository or JsonFilePhotoGroupRepository()
         self.error_handler = ErrorHandlingService()
+        from services.exif_merge_service import ExifMergeService
+        self.exif_merge_service = ExifMergeService()
     
     def rename_photos(
         self,
@@ -444,14 +447,21 @@ class PhotoRenameService:
         
         for op in rename_operations:
             try:
+                # Debug: Check if operation has required keys
+                if 'new_path' not in op or 'new_dir' not in op:
+                    self.logger.error(f"Operation missing new_path or new_dir: {op.keys()}")
+                    continue
+                
                 # Create directory if needed
                 op['new_dir'].mkdir(parents=True, exist_ok=True)
                 
                 # Copy or move the file
                 if copy_mode:
+                    self.logger.info(f"Copying {op['old_path']} -> {op['new_path']}")
                     shutil.copy2(str(op['old_path']), str(op['new_path']))
                     self._add_copy_history(op['photo'], op['old_path'], op['new_path'])
                 else:
+                    self.logger.info(f"Moving {op['old_path']} -> {op['new_path']}")
                     shutil.move(str(op['old_path']), str(op['new_path']))
                     self._update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
                 
@@ -513,7 +523,16 @@ class PhotoRenameService:
         # Get file extension to determine if metadata writing is supported
         file_ext = file_path.suffix.lower()
         
-        # Try to write UUID to EXIF metadata for supported formats
+        # Handle XMP files directly (don't try EXIF writing on them)
+        if file_ext == '.xmp':
+            if self._write_uuid_to_xmp_sidecar(file_path, group_uuid):
+                self.logger.info(f"Wrote UUID to XMP file: {file_path.name}")
+                return True
+            else:
+                self.logger.info(f"Failed to write UUID to XMP file: {file_path.name}")
+                return False
+        
+        # For other files, try to write UUID to EXIF metadata first
         if self._write_uuid_to_exif(file_path, group_uuid):
             self.logger.info(f"Wrote UUID to EXIF metadata: {file_path.name}")
             return True
@@ -529,50 +548,88 @@ class PhotoRenameService:
     
     # UUID writing implementations
     def _write_uuid_to_exif(self, file_path: Path, group_uuid: str) -> bool:
-        """Write UUID to EXIF metadata."""
-        try:
-            file_ext = file_path.suffix.lower()
-            
-            # Only attempt EXIF writing for JPEG files for now
-            if file_ext in ['.jpg', '.jpeg']:
-                # Try to use exiftool if available (external dependency)
-                # For now, we'll implement a basic approach using PIL
-                # Note: PIL can read EXIF but writing is limited
-                
-                # Check if the file has existing EXIF data
-                try:
-                    from PIL import Image
-                    from PIL.ExifTags import TAGS
-                    
-                    with Image.open(file_path) as img:
-                        if hasattr(img, '_getexif') and img._getexif() is not None:
-                            # File has EXIF data, but PIL cannot write custom EXIF tags easily
-                            # This would require exiftool or similar for proper implementation
-                            self.logger.debug(f"EXIF metadata writing not fully implemented for: {file_path}")
-                            return False
-                        else:
-                            # No EXIF data, can't add UUID
-                            return False
-                            
-                except ImportError:
-                    # PIL not available
-                    return False
-                except Exception as e:
-                    self.logger.debug(f"Error checking EXIF for {file_path}: {e}")
-                    return False
-            
-            return False
-            
-        except Exception as e:
-            self.logger.debug(f"EXIF UUID writing failed for {file_path}: {e}")
-            return False
+        """Write UUID to EXIF metadata using safe merging."""
+        return self.exif_merge_service.merge_uuid(file_path, group_uuid)
     
     def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str) -> bool:
-        """Write UUID to XMP sidecar file."""
+        """Write UUID to XMP sidecar file, preserving existing metadata."""
         try:
             # Create XMP sidecar file path
             xmp_path = file_path.with_suffix('.xmp')
             
+            if xmp_path.exists():
+                # Parse and merge with existing XMP file
+                return self._merge_uuid_into_existing_xmp(xmp_path, group_uuid)
+            else:
+                # Create new XMP file with UUID
+                return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+            
+        except Exception as e:
+            self.logger.debug(f"XMP UUID writing failed for {file_path}: {e}")
+            return False
+    
+    def _merge_uuid_into_existing_xmp(self, xmp_path: Path, group_uuid: str) -> bool:
+        """Merge UUID into existing XMP file without destroying existing metadata."""
+        try:
+            # Read existing XMP file
+            with open(xmp_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Parse the XML
+            root = ET.fromstring(content)
+            
+            # Define namespace mappings
+            namespaces = {
+                'x': 'adobe:ns:meta/',
+                'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                'imgmaster': 'http://imgmaster.local/ns/'
+            }
+            
+            # Register namespaces for ElementTree
+            for prefix, uri in namespaces.items():
+                ET.register_namespace(prefix, uri)
+            
+            # Find or create RDF element
+            rdf_elem = root.find('.//rdf:RDF', namespaces)
+            if rdf_elem is None:
+                self.logger.debug(f"No RDF element found in {xmp_path}, creating new structure")
+                return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+            
+            # Find existing Description element or create one
+            desc_elem = rdf_elem.find('.//rdf:Description', namespaces)
+            if desc_elem is None:
+                # Create new Description element
+                desc_elem = ET.SubElement(rdf_elem, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
+                desc_elem.set('rdf:about', '')
+            
+            # Add or update imgmaster namespace attributes
+            desc_elem.set('xmlns:imgmaster', 'http://imgmaster.local/ns/')
+            desc_elem.set('{http://imgmaster.local/ns/}GroupUUID', group_uuid)
+            desc_elem.set('{http://imgmaster.local/ns/}CreatedBy', 'imgmaster')
+            desc_elem.set('{http://imgmaster.local/ns/}Version', '1.0')
+            
+            # Write back the modified XML
+            tree = ET.ElementTree(root)
+            ET.indent(tree, space="  ", level=0)  # Pretty print
+            
+            with open(xmp_path, 'w', encoding='utf-8') as f:
+                f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+                tree.write(f, encoding='unicode', xml_declaration=False)
+            
+            self.logger.debug(f"Successfully merged UUID into existing XMP file: {xmp_path}")
+            return True
+            
+        except ET.ParseError as e:
+            self.logger.debug(f"Failed to parse existing XMP file {xmp_path}: {e}, creating new file")
+            # If parsing fails, create a new file
+            return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+        except Exception as e:
+            self.logger.debug(f"Failed to merge UUID into XMP file {xmp_path}: {e}")
+            return False
+    
+    def _create_new_xmp_with_uuid(self, xmp_path: Path, group_uuid: str) -> bool:
+        """Create a new XMP file with UUID metadata."""
+        try:
             # Basic XMP structure with UUID
             xmp_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="imgmaster">
@@ -585,19 +642,14 @@ class PhotoRenameService:
     </rdf:RDF>
 </x:xmpmeta>"""
             
-            # Check if XMP file already exists
-            if xmp_path.exists():
-                # TODO: Parse existing XMP and add UUID field
-                # For now, we'll overwrite with our UUID
-                self.logger.debug(f"Overwriting existing XMP file: {xmp_path}")
-            
             with open(xmp_path, 'w', encoding='utf-8') as f:
                 f.write(xmp_content)
             
+            self.logger.debug(f"Created new XMP file with UUID: {xmp_path}")
             return True
             
         except Exception as e:
-            self.logger.debug(f"XMP UUID writing failed for {file_path}: {e}")
+            self.logger.debug(f"Failed to create new XMP file {xmp_path}: {e}")
             return False
     
     def _classify_groups(self, all_groups: List) -> tuple[List, List]:

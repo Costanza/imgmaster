@@ -294,8 +294,4 @@ class TestPhoto(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # Add the parent directory to the path so we can import models
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    
     unittest.main()

@@ -10,6 +10,7 @@ wheels/
 .venv
 
 # Test data and temporary files
+*.log
 test_data/
 *.json
 out.txt
