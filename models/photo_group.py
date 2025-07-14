@@ -10,7 +10,8 @@ from .metadata import (
     MetadataExtractor, PhotoMetadata, PhotoMetadataWithSource,
     CameraInfo, CameraInfoWithSource, 
     DateInfo, DateInfoWithSource,
-    TechnicalInfo, TechnicalInfoWithSource
+    TechnicalInfo, TechnicalInfoWithSource,
+    KeywordInfo, KeywordInfoWithSource
 )
 
 
@@ -22,7 +23,7 @@ class PhotoGroup:
     that have the same basename but different extensions.
     """
     
-    def __init__(self, basename: str, group_uuid: str = None):
+    def __init__(self, basename: str, group_uuid: Optional[str] = None):
         """
         Initialize a PhotoGroup with a given basename.
         
@@ -235,6 +236,7 @@ class PhotoGroup:
         aggregated_camera = CameraInfoWithSource()
         aggregated_dates = DateInfoWithSource()
         aggregated_technical = TechnicalInfoWithSource()
+        aggregated_keywords = KeywordInfoWithSource()
         
         # Get photos that can contain metadata (prioritize non-sidecar files)
         photo_files = [photo for photo in self._photos.values() 
@@ -270,12 +272,14 @@ class PhotoGroup:
             aggregated_camera = self._aggregate_camera_info_with_source(metadata_sources)
             aggregated_dates = self._aggregate_date_info_with_source(metadata_sources)
             aggregated_technical = self._aggregate_technical_info_with_source(metadata_sources)
+            aggregated_keywords = self._aggregate_keyword_info_with_source(metadata_sources)
         
         # Create final metadata object
         self._metadata_cache = PhotoMetadataWithSource(
             camera=aggregated_camera,
             dates=aggregated_dates,
             technical=aggregated_technical,
+            keywords=aggregated_keywords,
             source_file=f"group:{self.basename}"
         )
         
@@ -356,6 +360,32 @@ class PhotoGroup:
         
         return technical
 
+    def _aggregate_keyword_info_with_source(self, metadata_sources: List[tuple]) -> KeywordInfoWithSource:
+        """Aggregate keyword information from multiple metadata sources with source tracking."""
+        keywords_info = KeywordInfoWithSource()
+        
+        # Sort sources by priority: photos first, then sidecars
+        sorted_sources = sorted(metadata_sources, key=lambda x: x[2] == 'sidecar')
+        
+        # Collect all keywords from all sources, giving priority to photo sources
+        all_keywords = []
+        keywords_source = None
+        
+        for metadata, filename, source_type in sorted_sources:
+            if metadata.keywords.keywords:
+                # Add keywords from this source
+                all_keywords.extend(metadata.keywords.keywords)
+                # Set source to first file that provides keywords
+                if not keywords_source:
+                    keywords_source = filename
+        
+        # Remove duplicates while preserving order
+        if all_keywords:
+            keywords_info.keywords = list(dict.fromkeys(all_keywords))
+            keywords_info.keywords_source = keywords_source
+        
+        return keywords_info
+
     def invalidate_metadata_cache(self) -> None:
         """Invalidate the cached metadata. Will be re-extracted on next access."""
         self._metadata_cache = None
@@ -408,7 +438,7 @@ class PhotoGroupManager:
         """Initialize an empty PhotoGroupManager."""
         self._groups: Dict[str, PhotoGroup] = {}
     
-    def add_photo(self, photo: Photo, group_uuid: str = None) -> PhotoGroup:
+    def add_photo(self, photo: Photo, group_uuid: Optional[str] = None) -> PhotoGroup:
         """
         Add a photo to the appropriate group based on its basename.
         
@@ -630,36 +660,22 @@ class PhotoGroupManager:
         errors_encountered = 0
         supported_formats = Photo.get_all_supported_formats()
         
-        logger.info(f"Supported formats: {sorted(supported_formats)}")
-        
         # Choose the appropriate glob pattern
         pattern = "**/*" if recursive else "*"
         
-        files_checked = 0
         for file_path in directory.glob(pattern):
             if not file_path.is_file():
                 continue
             
-            files_checked += 1
-            if files_checked <= 5:  # Log first 5 files for debugging
-                logger.info(f"Checking file: {file_path}")
-            
             # Check if the file extension is supported
             file_extension = file_path.suffix.lower()
             if file_extension not in supported_formats:
-                if files_checked <= 5:  # Log rejection reason for first 5 files
-                    logger.info(f"Skipping {file_path}: unsupported extension '{file_extension}'")
                 continue
             
             try:
-                if files_checked <= 5:  # Log attempt for first 5 files
-                    logger.info(f"Attempting to create Photo object for: {file_path}")
                 photo = Photo(file_path)
                 self.add_photo(photo)
                 photos_found += 1
-                
-                if photos_found <= 5:  # Log success for first 5 photos
-                    logger.info(f"Successfully added photo: {file_path}")
                 
                 if photos_found % 100 == 0:  # Log progress every 100 files
                     logger.info(f"Processed {photos_found} photos so far...")
@@ -668,8 +684,7 @@ class PhotoGroupManager:
                 errors_encountered += 1
                 logger.warning(f"Failed to process file {file_path}: {e}")
         
-        logger.info(f"Scan completed. Total files checked: {files_checked}")
-        logger.info(f"Found {photos_found} photos in {self.total_groups} groups")
+        logger.info(f"Scan completed. Found {photos_found} photos in {self.total_groups} groups")
         if errors_encountered > 0:
             logger.warning(f"Encountered {errors_encountered} errors during scan")
         

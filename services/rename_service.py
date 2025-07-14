@@ -5,7 +5,7 @@ import logging
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from collections import defaultdict
 
@@ -465,9 +465,12 @@ class PhotoRenameService:
                     shutil.move(str(op['old_path']), str(op['new_path']))
                     self._update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
                 
-                # Write UUID to file metadata if requested
+                # Write UUID and keywords to file metadata if requested
                 if write_uuid and op['group'].uuid:
-                    self._write_uuid_to_file(op['new_path'], op['group'].uuid)
+                    # Get keywords from group metadata
+                    group_metadata = op['group'].extract_metadata()
+                    keywords = group_metadata.keywords.keywords if group_metadata.keywords else []
+                    self._write_uuid_to_file(op['new_path'], op['group'].uuid, keywords)
                 
                 processed_count += 1
                 
@@ -509,40 +512,49 @@ class PhotoRenameService:
             'operation': 'copy'
         })
     
-    def _write_uuid_to_file(self, file_path: Path, group_uuid: str) -> bool:
+    def _write_uuid_to_file(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
         """
-        Write UUID to file metadata when possible.
+        Write UUID and keywords to file metadata when possible.
         
         Args:
             file_path: Path to the file to write UUID to
             group_uuid: UUID of the photo group
+            keywords: Optional list of keywords to write
             
         Returns:
             True if UUID was written successfully, False otherwise
         """
+        if keywords is None:
+            keywords = []
+        
         # Get file extension to determine if metadata writing is supported
         file_ext = file_path.suffix.lower()
         
         # Handle XMP files directly (don't try EXIF writing on them)
         if file_ext == '.xmp':
-            if self._write_uuid_to_xmp_sidecar(file_path, group_uuid):
-                self.logger.info(f"Wrote UUID to XMP file: {file_path.name}")
+            if self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords):
+                self.logger.info(f"Wrote UUID and keywords to XMP file: {file_path.name}")
                 return True
             else:
-                self.logger.info(f"Failed to write UUID to XMP file: {file_path.name}")
+                self.logger.info(f"Failed to write UUID and keywords to XMP file: {file_path.name}")
                 return False
         
-        # For other files, try to write UUID to EXIF metadata first
-        if self._write_uuid_to_exif(file_path, group_uuid):
+        # For image files, write to both EXIF (if supported) AND XMP sidecar for maximum compatibility
+        exif_success = self._write_uuid_to_exif(file_path, group_uuid)
+        xmp_success = self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords)
+        
+        # Log results
+        if exif_success:
             self.logger.info(f"Wrote UUID to EXIF metadata: {file_path.name}")
-            return True
         
-        # If EXIF writing fails or isn't supported, try XMP sidecar
-        if self._write_uuid_to_xmp_sidecar(file_path, group_uuid):
+        if xmp_success:
             self.logger.info(f"Wrote UUID to XMP sidecar file: {file_path.with_suffix('.xmp').name}")
+        
+        # Return success if either method worked
+        if exif_success or xmp_success:
             return True
         
-        # If neither works, just log and continue (no companion files)
+        # If neither works, just log and continue
         self.logger.info(f"UUID writing not supported for {file_ext} format: {file_path.name}")
         return False
     
@@ -551,25 +563,31 @@ class PhotoRenameService:
         """Write UUID to EXIF metadata using safe merging."""
         return self.exif_merge_service.merge_uuid(file_path, group_uuid)
     
-    def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str) -> bool:
-        """Write UUID to XMP sidecar file, preserving existing metadata."""
+    def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
+        """Write UUID and keywords to XMP sidecar file, preserving existing metadata."""
+        if keywords is None:
+            keywords = []
+        
         try:
             # Create XMP sidecar file path
             xmp_path = file_path.with_suffix('.xmp')
             
             if xmp_path.exists():
                 # Parse and merge with existing XMP file
-                return self._merge_uuid_into_existing_xmp(xmp_path, group_uuid)
+                return self._merge_uuid_into_existing_xmp(xmp_path, group_uuid, keywords)
             else:
-                # Create new XMP file with UUID
-                return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+                # Create new XMP file with UUID and keywords
+                return self._create_new_xmp_with_uuid(xmp_path, group_uuid, keywords)
             
         except Exception as e:
             self.logger.debug(f"XMP UUID writing failed for {file_path}: {e}")
             return False
     
-    def _merge_uuid_into_existing_xmp(self, xmp_path: Path, group_uuid: str) -> bool:
-        """Merge UUID into existing XMP file without destroying existing metadata."""
+    def _merge_uuid_into_existing_xmp(self, xmp_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
+        """Merge UUID and keywords into existing XMP file without destroying existing metadata."""
+        if keywords is None:
+            keywords = []
+        
         try:
             # Read existing XMP file
             with open(xmp_path, 'r', encoding='utf-8') as f:
@@ -593,7 +611,7 @@ class PhotoRenameService:
             rdf_elem = root.find('.//rdf:RDF', namespaces)
             if rdf_elem is None:
                 self.logger.debug(f"No RDF element found in {xmp_path}, creating new structure")
-                return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+                return self._create_new_xmp_with_uuid(xmp_path, group_uuid, keywords)
             
             # Find existing Description element or create one
             desc_elem = rdf_elem.find('.//rdf:Description', namespaces)
@@ -607,6 +625,36 @@ class PhotoRenameService:
             desc_elem.set('{http://imgmaster.local/ns/}GroupUUID', group_uuid)
             desc_elem.set('{http://imgmaster.local/ns/}CreatedBy', 'imgmaster')
             desc_elem.set('{http://imgmaster.local/ns/}Version', '1.0')
+            
+            # Add keywords if provided
+            if keywords:
+                # Add Dublin Core namespace
+                desc_elem.set('xmlns:dc', 'http://purl.org/dc/elements/1.1/')
+                
+                # Find or create dc:subject element
+                dc_subject = desc_elem.find('.//dc:subject', {'dc': 'http://purl.org/dc/elements/1.1/'})
+                if dc_subject is None:
+                    # Create RDF Bag structure for keywords
+                    dc_subject = ET.SubElement(desc_elem, '{http://purl.org/dc/elements/1.1/}subject')
+                    rdf_bag = ET.SubElement(dc_subject, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Bag')
+                    for keyword in keywords:
+                        rdf_li = ET.SubElement(rdf_bag, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li')
+                        rdf_li.text = keyword
+                else:
+                    # Merge with existing keywords
+                    rdf_bag = dc_subject.find('.//rdf:Bag', namespaces)
+                    if rdf_bag is not None:
+                        # Get existing keywords
+                        existing_keywords = set()
+                        for li in rdf_bag.findall('.//rdf:li', namespaces):
+                            if li.text:
+                                existing_keywords.add(li.text)
+                        
+                        # Add new keywords that don't already exist
+                        for keyword in keywords:
+                            if keyword not in existing_keywords:
+                                rdf_li = ET.SubElement(rdf_bag, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li')
+                                rdf_li.text = keyword
             
             # Write back the modified XML
             tree = ET.ElementTree(root)
@@ -622,30 +670,64 @@ class PhotoRenameService:
         except ET.ParseError as e:
             self.logger.debug(f"Failed to parse existing XMP file {xmp_path}: {e}, creating new file")
             # If parsing fails, create a new file
-            return self._create_new_xmp_with_uuid(xmp_path, group_uuid)
+            return self._create_new_xmp_with_uuid(xmp_path, group_uuid, keywords)
         except Exception as e:
             self.logger.debug(f"Failed to merge UUID into XMP file {xmp_path}: {e}")
             return False
     
-    def _create_new_xmp_with_uuid(self, xmp_path: Path, group_uuid: str) -> bool:
-        """Create a new XMP file with UUID metadata."""
+    def _create_new_xmp_with_uuid(self, xmp_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
+        """Create a new XMP file with UUID and keyword metadata."""
+        if keywords is None:
+            keywords = []
+        
         try:
-            # Basic XMP structure with UUID
-            xmp_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="imgmaster">
-    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-        <rdf:Description rdf:about=""
-            xmlns:imgmaster="http://imgmaster.local/ns/"
-            imgmaster:GroupUUID="{group_uuid}"
-            imgmaster:CreatedBy="imgmaster"
-            imgmaster:Version="1.0"/>
-    </rdf:RDF>
-</x:xmpmeta>"""
+            # Create XML structure
+            root = ET.Element('{adobe:ns:meta/}xmpmeta')
+            root.set('xmlns:x', 'adobe:ns:meta/')
+            root.set('x:xmptk', 'imgmaster')
+            
+            # Create RDF element
+            rdf_elem = ET.SubElement(root, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF')
+            rdf_elem.set('xmlns:rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+            
+            # Create Description element
+            desc_elem = ET.SubElement(rdf_elem, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
+            desc_elem.set('rdf:about', '')
+            
+            # Add imgmaster namespace attributes
+            desc_elem.set('xmlns:imgmaster', 'http://imgmaster.local/ns/')
+            desc_elem.set('{http://imgmaster.local/ns/}GroupUUID', group_uuid)
+            desc_elem.set('{http://imgmaster.local/ns/}CreatedBy', 'imgmaster')
+            desc_elem.set('{http://imgmaster.local/ns/}Version', '1.0')
+            
+            # Add keywords if provided
+            if keywords:
+                desc_elem.set('xmlns:dc', 'http://purl.org/dc/elements/1.1/')
+                
+                # Create dc:subject with RDF Bag
+                dc_subject = ET.SubElement(desc_elem, '{http://purl.org/dc/elements/1.1/}subject')
+                rdf_bag = ET.SubElement(dc_subject, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Bag')
+                
+                for keyword in keywords:
+                    rdf_li = ET.SubElement(rdf_bag, '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li')
+                    rdf_li.text = keyword
+            
+            # Register namespaces for pretty output
+            ET.register_namespace('x', 'adobe:ns:meta/')
+            ET.register_namespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+            ET.register_namespace('imgmaster', 'http://imgmaster.local/ns/')
+            if keywords:
+                ET.register_namespace('dc', 'http://purl.org/dc/elements/1.1/')
+            
+            # Write the XML file
+            tree = ET.ElementTree(root)
+            ET.indent(tree, space="  ", level=0)  # Pretty print
             
             with open(xmp_path, 'w', encoding='utf-8') as f:
-                f.write(xmp_content)
+                f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+                tree.write(f, encoding='unicode', xml_declaration=False)
             
-            self.logger.debug(f"Created new XMP file with UUID: {xmp_path}")
+            self.logger.debug(f"Created new XMP file with UUID and {len(keywords)} keywords: {xmp_path}")
             return True
             
         except Exception as e:

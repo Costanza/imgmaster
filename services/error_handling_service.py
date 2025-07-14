@@ -4,7 +4,7 @@ import os
 import shutil
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from enum import Enum
 
 from models.photo import Photo
@@ -106,8 +106,8 @@ class ErrorHandlingService:
         
         return results
     
-    def classify_error(self, photo: Photo = None, group: PhotoGroup = None, 
-                      exception: Exception = None) -> ErrorType:
+    def classify_error(self, photo: Optional[Photo] = None, group: Optional[PhotoGroup] = None, 
+                      exception: Optional[Exception] = None) -> ErrorType:
         """
         Classify the type of error based on the photo/group and exception.
         
@@ -124,12 +124,22 @@ class ErrorHandlingService:
             return ErrorType.PERMISSION_ERROR
         
         # Check for missing date in group
-        if group and not group.date_taken:
-            return ErrorType.MISSING_DATE
+        if group:
+            try:
+                metadata = group.extract_metadata()
+                if not metadata.dates.date_taken:
+                    return ErrorType.MISSING_DATE
+            except Exception:
+                pass  # Continue to other checks
         
-        # Check for missing date in individual photo
-        if photo and not hasattr(photo, 'metadata') or not photo.metadata or not photo.metadata.date_taken:
-            return ErrorType.MISSING_DATE
+        # Check for missing date in individual photo (if photo model has metadata)
+        if photo:
+            try:
+                # Check if photo has a path that we can analyze
+                if hasattr(photo, 'absolute_path') and not photo.absolute_path.exists():
+                    return ErrorType.INVALID_FILE
+            except Exception:
+                pass  # Continue to other checks
         
         # Check for corrupted files (based on exception types)
         if exception and any(keyword in str(exception).lower() 
@@ -137,8 +147,8 @@ class ErrorHandlingService:
             return ErrorType.CORRUPTED_FILE
         
         # Check for unsupported format
-        if photo and photo.filepath:
-            ext = os.path.splitext(photo.filepath)[1].lower()
+        if photo and hasattr(photo, 'absolute_path'):
+            ext = photo.absolute_path.suffix.lower()
             if ext not in ['.jpg', '.jpeg', '.tiff', '.tif', '.png', '.raw', '.cr2', '.nef', '.arw']:
                 return ErrorType.UNSUPPORTED_FORMAT
         

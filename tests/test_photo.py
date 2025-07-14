@@ -48,6 +48,7 @@ class TestPhoto(unittest.TestCase):
         # Test Sidecar formats
         self.assertIn('.xmp', Photo.SIDECAR_FORMATS)
         self.assertIn('.xml', Photo.SIDECAR_FORMATS)
+        self.assertIn('.aae', Photo.SIDECAR_FORMATS)  # Apple adjustment data
         self.assertIn('.thm', Photo.SIDECAR_FORMATS)
         
         # Test Other formats
@@ -99,6 +100,7 @@ class TestPhoto(unittest.TestCase):
         # Test Sidecar classification
         self.assertEqual(Photo.get_format_classification('.xmp'), 'sidecar')
         self.assertEqual(Photo.get_format_classification('.xml'), 'sidecar')
+        self.assertEqual(Photo.get_format_classification('.aae'), 'sidecar')  # Apple adjustment data
         self.assertEqual(Photo.get_format_classification('.thm'), 'sidecar')
         
         # Test Other classification

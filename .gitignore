@@ -15,3 +15,6 @@ test_data/
 *.json
 out.txt
 demo.py
+
+# Stupid Mac Files
+.DS_Store

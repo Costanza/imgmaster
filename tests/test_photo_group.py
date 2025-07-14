@@ -280,13 +280,14 @@ class TestPhotoGroup(unittest.TestCase):
         mock_extractor_class.return_value = mock_extractor
         
         # Mock extracted metadata
-        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo, KeywordInfo
         from datetime import datetime
         
         mock_metadata = PhotoMetadata(
             camera=CameraInfo(make="Canon", model="EOS R5"),
             dates=DateInfo(date_taken=datetime(2024, 1, 1, 12, 0, 0)),
             technical=TechnicalInfo(iso=100, aperture=2.8),
+            keywords=KeywordInfo(),
             source_file="test.jpg"
         )
         mock_extractor.extract_from_photo.return_value = mock_metadata
@@ -312,12 +313,13 @@ class TestPhotoGroup(unittest.TestCase):
         mock_extractor_class.return_value = mock_extractor
         
         # Mock extracted metadata
-        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+        from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo, KeywordInfo
         
         mock_photo_metadata = PhotoMetadata(
             camera=CameraInfo(make="Canon", model="EOS R5"),
             dates=DateInfo(),
             technical=TechnicalInfo(iso=100),
+            keywords=KeywordInfo(),
             source_file="test.jpg"
         )
         
@@ -325,6 +327,7 @@ class TestPhotoGroup(unittest.TestCase):
             camera=CameraInfo(lens_model="RF 24-70mm f/2.8L IS USM"),
             dates=DateInfo(),
             technical=TechnicalInfo(aperture=2.8),
+            keywords=KeywordInfo(),
             source_file="test.xmp"
         )
         
@@ -350,11 +353,12 @@ class TestPhotoGroup(unittest.TestCase):
         
         # Extract metadata to cache it
         with patch.object(group, '_metadata_extractor') as mock_extractor:
-            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo, KeywordInfo
             mock_metadata = PhotoMetadata(
                 camera=CameraInfo(),
                 dates=DateInfo(),
                 technical=TechnicalInfo(),
+                keywords=KeywordInfo(),
                 source_file="test.jpg"
             )
             mock_extractor.extract_from_photo.return_value = mock_metadata
@@ -384,11 +388,13 @@ class TestPhotoGroup(unittest.TestCase):
             mock_extractor = MagicMock()
             mock_extractor_class.return_value = mock_extractor
             
-            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo, KeywordInfo
             mock_metadata = PhotoMetadata(
                 camera=CameraInfo(),
                 dates=DateInfo(),
-                technical=TechnicalInfo()
+                technical=TechnicalInfo(),
+                keywords=KeywordInfo(),
+                source_file="test.jpg"
             )
             mock_extractor.extract_from_photo.return_value = mock_metadata
             mock_extractor.extract_from_xmp.return_value = mock_metadata
@@ -1012,11 +1018,12 @@ class TestPhotoGroupManagerValidation(unittest.TestCase):
             mock_extractor = MagicMock()
             mock_extractor_class.return_value = mock_extractor
             
-            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo
+            from models.metadata import PhotoMetadata, CameraInfo, DateInfo, TechnicalInfo, KeywordInfo
             mock_metadata = PhotoMetadata(
                 camera=CameraInfo(make="Test Camera"),
                 dates=DateInfo(),
                 technical=TechnicalInfo(iso=200),
+                keywords=KeywordInfo(),
                 source_file="test.jpg"
             )
             mock_extractor.extract_from_photo.return_value = mock_metadata
