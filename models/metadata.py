@@ -258,6 +258,12 @@ class MetadataExtractor:
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+    
+    def _is_raw_format(self, photo_path: Path) -> bool:
+        """Check if the file is a RAW format."""
+        # Import here to avoid circular imports
+        from models.photo import Photo
+        return photo_path.suffix.lower() in Photo.RAW_FORMATS
         
     def extract_from_photo(self, photo_path: Path) -> PhotoMetadata:
         """
@@ -280,8 +286,8 @@ class MetadataExtractor:
             )
         
         try:
-            # For HEIC files and files that need keyword extraction, try exiftool first
-            if photo_path.suffix.lower() in ['.heic', '.heif']:
+            # For HEIC files and RAW files, try exiftool first (best for these formats)
+            if photo_path.suffix.lower() in ['.heic', '.heif'] or self._is_raw_format(photo_path):
                 metadata = self._extract_with_exiftool(photo_path)
                 if not metadata.is_empty():
                     return metadata
@@ -291,7 +297,7 @@ class MetadataExtractor:
             if not metadata.is_empty():
                 return metadata
             
-            # Fallback to exifread (works with RAW files)
+            # Fallback to exifread (works with some RAW files)
             metadata = self._extract_with_exifread(photo_path)
             metadata.source_file = str(photo_path)
             return metadata
@@ -499,15 +505,63 @@ class MetadataExtractor:
                 date_str = data.get('DateTimeOriginal')
                 if date_str:
                     try:
-                        # Handle various date formats
+                        # Handle various date formats that exiftool might return
                         if 'T' in date_str:
-                            # ISO format like "2022-12-28T18:44:47+11:00"
+                            # ISO format like "2022-12-28T18:44:47+11:00" or "2025-03-12T07:57:24.26+11:00"
+                            # Handle fractional seconds by truncating them
+                            if '.' in date_str and ('+' in date_str or '-' in date_str.split('T')[1]):
+                                # Extract the part before fractional seconds and timezone part
+                                base_part = date_str.split('.')[0]
+                                tz_part = '+' + date_str.split('+')[1] if '+' in date_str else ''
+                                if not tz_part and '-' in date_str.split('T')[1]:
+                                    tz_part = '-' + date_str.split('-')[-1]
+                                date_str = base_part + tz_part
                             dates.date_taken = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                        elif ':' in date_str and len(date_str.split(' ')) == 2:
+                            # EXIF format with potential timezone like "2025:03:12 07:57:24.26+11:00"
+                            if '+' in date_str or (date_str.count('-') > 2):
+                                # Has timezone - need to convert to ISO format
+                                date_part, time_part = date_str.split(' ', 1)
+                                # Convert date from YYYY:MM:DD to YYYY-MM-DD
+                                iso_date = date_part.replace(':', '-')
+                                # Handle fractional seconds and timezone in time part
+                                if '.' in time_part:
+                                    time_base = time_part.split('.')[0]
+                                    fractional_and_tz = time_part.split('.')[1]
+                                    if '+' in fractional_and_tz:
+                                        tz_part = '+' + fractional_and_tz.split('+')[1]
+                                    elif '-' in fractional_and_tz:
+                                        tz_part = '-' + fractional_and_tz.split('-')[1]
+                                    else:
+                                        tz_part = ''
+                                    iso_datetime = f"{iso_date}T{time_base}{tz_part}"
+                                else:
+                                    iso_datetime = f"{iso_date}T{time_part}"
+                                dates.date_taken = datetime.fromisoformat(iso_datetime)
+                            else:
+                                # Standard EXIF format like "2022:12:28 18:44:47"
+                                dates.date_taken = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
                         else:
-                            # EXIF format like "2022:12:28 18:44:47"
-                            dates.date_taken = datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
+                            # Try to parse as-is
+                            dates.date_taken = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
                     except ValueError as e:
                         self.logger.debug(f"Failed to parse date {date_str}: {e}")
+                        # Try additional fallback formats
+                        try:
+                            # Last resort: strip everything after the seconds
+                            if ' ' in date_str:
+                                date_part, time_part = date_str.split(' ', 1)
+                                time_base = time_part.split('.')[0].split('+')[0].split('-')[0]
+                                if ':' in date_part:
+                                    # Convert YYYY:MM:DD format
+                                    clean_date = date_part.replace(':', '-')
+                                    fallback_str = f"{clean_date} {time_base}"
+                                    dates.date_taken = datetime.strptime(fallback_str, "%Y-%m-%d %H:%M:%S")
+                                else:
+                                    fallback_str = f"{date_part} {time_base}"
+                                    dates.date_taken = datetime.strptime(fallback_str, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            self.logger.warning(f"Could not parse date {date_str} with any known format")
                 
                 # Technical info
                 iso_val = data.get('ISO')

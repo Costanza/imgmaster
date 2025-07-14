@@ -66,12 +66,10 @@ def build(directory: Path, output: Path, recursive: bool, verbose: bool):
               help='Copy files instead of moving them (leaves originals in place)')
 @click.option('--skip-invalid/--include-invalid', default=True,
               help='Skip invalid photo groups (containing only sidecar/live photos). Default: skip invalid groups')
-@click.option('--write-uuid', is_flag=True, default=False,
-              help='Write photo group UUID to file metadata (when possible)')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enable verbose logging')
 def rename(database: Path, destination: Path, scheme: str, sequence_digits: int, 
-           dry_run: bool, copy: bool, skip_invalid: bool, write_uuid: bool, verbose: bool):
+           dry_run: bool, copy: bool, skip_invalid: bool, verbose: bool):
     """
     Rename photo files based on metadata and grouping rules.
     
@@ -134,7 +132,7 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
         rename_service = PhotoRenameService()
         results = rename_service.rename_photos(
             database, destination, scheme, sequence_digits, 
-            dry_run, copy, skip_invalid, write_uuid
+            dry_run, copy, skip_invalid
         )
         
         # Show results

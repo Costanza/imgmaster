@@ -40,7 +40,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify
         self.assertTrue(result)
         mock_exif_write.assert_called_once_with(jpeg_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -60,7 +60,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify
         self.assertTrue(result)
         mock_exif_write.assert_called_once_with(raw_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(raw_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(raw_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -80,7 +80,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify
         self.assertTrue(result)
         mock_exif_write.assert_called_once_with(heic_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(heic_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(heic_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -100,7 +100,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify - should still return True because XMP succeeded
         self.assertTrue(result)
         mock_exif_write.assert_called_once_with(jpeg_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -120,7 +120,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify - should return False because both failed
         self.assertFalse(result)
         mock_exif_write.assert_called_once_with(jpeg_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
     def test_write_uuid_to_xmp_file_direct(self, mock_xmp_write):
@@ -137,7 +137,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
 
         # Verify
         self.assertTrue(result)
-        mock_xmp_write.assert_called_once_with(xmp_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(xmp_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -157,7 +157,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify - should return False but still attempt both methods for compatibility
         self.assertFalse(result)
         mock_exif_write.assert_called_once_with(txt_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(txt_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(txt_path, self.uuid, [], True)
 
     @patch.object(PhotoRenameService, '_write_uuid_to_exif')
     @patch.object(PhotoRenameService, '_write_uuid_to_xmp_sidecar')
@@ -177,7 +177,7 @@ class TestDualExifXmpWriting(unittest.TestCase):
         # Verify both methods were called even though EXIF succeeded
         self.assertTrue(result)
         mock_exif_write.assert_called_once_with(jpeg_path, self.uuid)
-        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [])
+        mock_xmp_write.assert_called_once_with(jpeg_path, self.uuid, [], True)
 
 
 if __name__ == '__main__':

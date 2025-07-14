@@ -32,8 +32,7 @@ class PhotoRenameService:
         sequence_digits: int = 3,
         dry_run: bool = False,
         copy_mode: bool = False,
-        skip_invalid: bool = True,
-        write_uuid: bool = False
+        skip_invalid: bool = True
     ) -> Dict[str, Any]:
         """
         Rename photo files based on metadata and grouping rules.
@@ -46,7 +45,6 @@ class PhotoRenameService:
             dry_run: If True, only show what would be done
             copy_mode: If True, copy files instead of moving them
             skip_invalid: If True, skip invalid photo groups
-            write_uuid: If True, write photo group UUID to file metadata
             
         Returns:
             Dictionary with operation results and statistics
@@ -59,7 +57,6 @@ class PhotoRenameService:
         self.logger.info(f"Dry run mode: {dry_run}")
         self.logger.info(f"Copy mode: {copy_mode}")
         self.logger.info(f"Skip invalid groups: {skip_invalid}")
-        self.logger.info(f"Write UUID to metadata: {write_uuid}")
         
         # Load the photo database using repository
         manager = self.repository.load(str(database_path))
@@ -138,7 +135,7 @@ class PhotoRenameService:
         else:
             # Perform actual rename operations
             results['processed_count'] = self._execute_rename_operations(
-                rename_operations, copy_mode, write_uuid
+                rename_operations, copy_mode
             )
             
             # Save updated database (only if we moved files, not copied)
@@ -262,7 +259,7 @@ class PhotoRenameService:
                 '{camera_make}': self._safe_filename(camera.make or 'UnknownMake'),
                 '{camera_model}': self._safe_filename(camera.model or 'UnknownModel'),
                 '{lens_model}': self._safe_filename(camera.lens_model or 'UnknownLens'),
-                '{serial_number}': self._safe_filename(camera.serial_number or 'NoSerial'),
+                '{serial_number}': self._safe_filename(str(camera.serial_number) if camera.serial_number is not None else 'NoSerial'),
             })
         else:
             replacements.update({
@@ -440,7 +437,7 @@ class PhotoRenameService:
                     operation['new_path'] = final_path
                     operation['new_dir'] = final_path.parent
     
-    def _execute_rename_operations(self, rename_operations: List[Dict], copy_mode: bool, write_uuid: bool = False) -> int:
+    def _execute_rename_operations(self, rename_operations: List[Dict], copy_mode: bool) -> int:
         """Execute the actual file rename/copy operations."""
         processed_count = 0
         action_verb = "Copying" if copy_mode else "Renaming"
@@ -464,13 +461,6 @@ class PhotoRenameService:
                     self.logger.info(f"Moving {op['old_path']} -> {op['new_path']}")
                     shutil.move(str(op['old_path']), str(op['new_path']))
                     self._update_photo_with_history(op['photo'], op['old_path'], op['new_path'])
-                
-                # Write UUID and keywords to file metadata if requested
-                if write_uuid and op['group'].uuid:
-                    # Get keywords from group metadata
-                    group_metadata = op['group'].extract_metadata()
-                    keywords = group_metadata.keywords.keywords if group_metadata.keywords else []
-                    self._write_uuid_to_file(op['new_path'], op['group'].uuid, keywords)
                 
                 processed_count += 1
                 
@@ -512,7 +502,7 @@ class PhotoRenameService:
             'operation': 'copy'
         })
     
-    def _write_uuid_to_file(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
+    def _write_uuid_to_file(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None, backup_xmp: bool = True) -> bool:
         """
         Write UUID and keywords to file metadata when possible.
         
@@ -520,6 +510,7 @@ class PhotoRenameService:
             file_path: Path to the file to write UUID to
             group_uuid: UUID of the photo group
             keywords: Optional list of keywords to write
+            backup_xmp: If True, create backup copies of original XMP files
             
         Returns:
             True if UUID was written successfully, False otherwise
@@ -532,7 +523,7 @@ class PhotoRenameService:
         
         # Handle XMP files directly (don't try EXIF writing on them)
         if file_ext == '.xmp':
-            if self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords):
+            if self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords, backup_xmp):
                 self.logger.info(f"Wrote UUID and keywords to XMP file: {file_path.name}")
                 return True
             else:
@@ -541,7 +532,7 @@ class PhotoRenameService:
         
         # For image files, write to both EXIF (if supported) AND XMP sidecar for maximum compatibility
         exif_success = self._write_uuid_to_exif(file_path, group_uuid)
-        xmp_success = self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords)
+        xmp_success = self._write_uuid_to_xmp_sidecar(file_path, group_uuid, keywords, backup_xmp)
         
         # Log results
         if exif_success:
@@ -563,7 +554,7 @@ class PhotoRenameService:
         """Write UUID to EXIF metadata using safe merging."""
         return self.exif_merge_service.merge_uuid(file_path, group_uuid)
     
-    def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None) -> bool:
+    def _write_uuid_to_xmp_sidecar(self, file_path: Path, group_uuid: str, keywords: Optional[List[str]] = None, backup_xmp: bool = True) -> bool:
         """Write UUID and keywords to XMP sidecar file, preserving existing metadata."""
         if keywords is None:
             keywords = []
@@ -573,6 +564,10 @@ class PhotoRenameService:
             xmp_path = file_path.with_suffix('.xmp')
             
             if xmp_path.exists():
+                # Create backup if requested
+                if backup_xmp:
+                    self._create_xmp_backup(xmp_path)
+                
                 # Parse and merge with existing XMP file
                 return self._merge_uuid_into_existing_xmp(xmp_path, group_uuid, keywords)
             else:
@@ -733,6 +728,23 @@ class PhotoRenameService:
         except Exception as e:
             self.logger.debug(f"Failed to create new XMP file {xmp_path}: {e}")
             return False
+    
+    def _create_xmp_backup(self, xmp_path: Path) -> None:
+        """Create a backup copy of an XMP file as filename_orig.xmp."""
+        try:
+            # Generate backup filename: filename_orig.xmp
+            backup_path = xmp_path.with_name(f"{xmp_path.stem}_orig{xmp_path.suffix}")
+            
+            # Only create backup if it doesn't already exist
+            if not backup_path.exists():
+                shutil.copy2(str(xmp_path), str(backup_path))
+                self.logger.debug(f"Created XMP backup: {backup_path.name}")
+            else:
+                self.logger.debug(f"XMP backup already exists: {backup_path.name}")
+                
+        except Exception as e:
+            self.logger.warning(f"Failed to create XMP backup for {xmp_path.name}: {e}")
+            # Don't raise exception - backup failure shouldn't stop the main operation
     
     def _classify_groups(self, all_groups: List) -> tuple[List, List]:
         """
