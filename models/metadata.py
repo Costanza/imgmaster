@@ -322,10 +322,10 @@ class MetadataExtractor:
         return photo_path.suffix.lower() in Photo.RAW_FORMATS
     
     def _supports_exifread(self, photo_path: Path) -> bool:
-        """Check if the file format is supported by exifread."""
-        # exifread supports TIFF, JPEG, and some RAW formats
-        # It does NOT support XMP, MOV, MP4, HEIC, AAE, etc.
-        supported_exts = {'.jpg', '.jpeg', '.tif', '.tiff', '.cr2', '.cr3', '.nef', '.arw', '.dng', '.raf', '.orf', '.rw2', '.pef', '.srw'}
+        """Check if the file format is actually supported by exifread."""
+        # exifread works well with: JPEG, TIFF, and most Canon/Nikon/Sony RAW formats
+        # It does NOT work well with: RAF (Fuji), HEIC, MOV, MP4, XMP, AAE, etc.
+        supported_exts = {'.jpg', '.jpeg', '.tif', '.tiff', '.cr2', '.cr3', '.nef', '.arw', '.dng', '.orf', '.rw2', '.pef', '.srw'}
         return photo_path.suffix.lower() in supported_exts
     
     def _supports_pil(self, photo_path: Path) -> bool:
@@ -373,8 +373,8 @@ class MetadataExtractor:
                     self._record_date_extraction_result(photo_path, metadata)
                     return metadata
             
-            # Try exifread on supported formats (but not RAF - it doesn't work well)
-            if self._supports_exifread(photo_path) and photo_path.suffix.lower() != '.raf':
+            # Try exifread on supported formats (JPEG, TIFF, most RAW except Fuji RAF)
+            if self._supports_exifread(photo_path):
                 attempted_methods.append("exifread")
                 metadata = self._extract_with_exifread(photo_path)
                 if not metadata.is_empty():
