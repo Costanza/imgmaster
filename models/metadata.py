@@ -18,8 +18,19 @@ try:
     from PIL import Image
     from PIL.ExifTags import TAGS
     EXIF_AVAILABLE = True
+    
+    # Try to import and register HEIF support
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+        HEIF_AVAILABLE = True
+    except ImportError:
+        HEIF_AVAILABLE = False
+        logging.debug("pillow-heif not available - HEIF files will have limited support")
+        
 except ImportError:
     EXIF_AVAILABLE = False
+    HEIF_AVAILABLE = False
     logging.warning("EXIF libraries not available. Install with: pip install exifread pillow")
 
 
@@ -320,8 +331,11 @@ class MetadataExtractor:
     def _supports_pil(self, photo_path: Path) -> bool:
         """Check if the file format is supported by PIL."""
         # PIL supports JPEG, TIFF, PNG, BMP, GIF, WebP, etc.
+        # With pillow-heif, it also supports HEIC/HEIF files
         # It does NOT support videos (MOV, MP4), RAW files, XMP, AAE, etc.
         supported_exts = {'.jpg', '.jpeg', '.tif', '.tiff', '.png', '.bmp', '.gif', '.webp', '.ico'}
+        if HEIF_AVAILABLE:
+            supported_exts.update({'.heic', '.heif'})
         return photo_path.suffix.lower() in supported_exts
     
     def extract_from_photo(self, photo_path: Path) -> PhotoMetadata:
@@ -351,15 +365,7 @@ class MetadataExtractor:
         metadata = None
         
         try:
-            # For HEIC files and RAW files, try exiftool first (best for these formats)
-            if photo_path.suffix.lower() in ['.heic', '.heif'] or self._is_raw_format(photo_path):
-                attempted_methods.append("exiftool")
-                metadata = self._extract_with_exiftool(photo_path)
-                if not metadata.is_empty():
-                    self._record_date_extraction_result(photo_path, metadata)
-                    return metadata
-            
-            # Try PIL on supported formats (works well with JPEG, TIFF, PNG)
+            # First try PIL for supported formats (includes HEIC with pillow-heif)
             if self._supports_pil(photo_path):
                 attempted_methods.append("PIL")
                 metadata = self._extract_with_pil(photo_path)
@@ -367,13 +373,23 @@ class MetadataExtractor:
                     self._record_date_extraction_result(photo_path, metadata)
                     return metadata
             
-            # Only try exifread on supported formats to avoid "File format not recognized" warnings
-            if self._supports_exifread(photo_path):
+            # Try exifread on supported formats (but not RAF - it doesn't work well)
+            if self._supports_exifread(photo_path) and photo_path.suffix.lower() != '.raf':
                 attempted_methods.append("exifread")
                 metadata = self._extract_with_exifread(photo_path)
-                metadata.source_file = str(photo_path)
-                self._record_date_extraction_result(photo_path, metadata)
-                return metadata
+                if not metadata.is_empty():
+                    metadata.source_file = str(photo_path)
+                    self._record_date_extraction_result(photo_path, metadata)
+                    return metadata
+            
+            # Try exiftool for RAF files and other formats that need it
+            if (photo_path.suffix.lower() in ['.heic', '.heif', '.raf'] or 
+                self._is_raw_format(photo_path)):
+                attempted_methods.append("exiftool")
+                metadata = self._extract_with_exiftool(photo_path)
+                if not metadata.is_empty():
+                    self._record_date_extraction_result(photo_path, metadata)
+                    return metadata
             
             # Return empty metadata for unsupported formats
             self._record_date_extraction_failure(
@@ -402,6 +418,15 @@ class MetadataExtractor:
     
     def _extract_with_pil(self, photo_path: Path) -> PhotoMetadata:
         """Extract metadata using PIL."""
+        if not EXIF_AVAILABLE:
+            return PhotoMetadata(
+                camera=CameraInfo(),
+                dates=DateInfo(),
+                technical=TechnicalInfo(),
+                keywords=KeywordInfo(),
+                source_file=str(photo_path)
+            )
+            
         camera = CameraInfo()
         dates = DateInfo()
         technical = TechnicalInfo()
@@ -409,7 +434,8 @@ class MetadataExtractor:
         
         try:
             with Image.open(photo_path) as img:
-                exif_data = img._getexif()
+                # Use the modern getexif() method instead of deprecated _getexif()
+                exif_data = img.getexif()
                 
                 if exif_data:
                     # Camera info - convert values to strings safely
@@ -419,14 +445,40 @@ class MetadataExtractor:
                     model_value = exif_data.get(272)  # Model
                     camera.model = self._convert_exif_value_to_string(model_value) if model_value else None
                     
-                    lens_value = exif_data.get(42036)  # LensModel
-                    camera.lens_model = self._convert_exif_value_to_string(lens_value) if lens_value else None
+                    # Try to get EXIF sub-directory for more detailed info
+                    exif_sub = None
+                    if hasattr(exif_data, 'get_ifd'):
+                        try:
+                            exif_sub = exif_data.get_ifd(34665)  # ExifIFD
+                        except Exception:
+                            pass
                     
-                    serial_value = exif_data.get(42033)  # SerialNumber
-                    camera.serial_number = self._convert_exif_value_to_string(serial_value) if serial_value else None
+                    # Lens model and serial number are usually in sub-IFD
+                    if exif_sub:
+                        lens_value = exif_sub.get(42036)  # LensModel
+                        camera.lens_model = self._convert_exif_value_to_string(lens_value) if lens_value else None
+                        
+                        serial_value = exif_sub.get(42033)  # SerialNumber
+                        camera.serial_number = self._convert_exif_value_to_string(serial_value) if serial_value else None
+                    else:
+                        # Fallback to main EXIF data
+                        lens_value = exif_data.get(42036)  # LensModel
+                        camera.lens_model = self._convert_exif_value_to_string(lens_value) if lens_value else None
+                        
+                        serial_value = exif_data.get(42033)  # SerialNumber
+                        camera.serial_number = self._convert_exif_value_to_string(serial_value) if serial_value else None
                     
-                    # Date info - ONLY use DateTimeOriginal, never DateTime (modification date)
-                    date_str = exif_data.get(36868)  # DateTimeOriginal ONLY
+                    # Date info - ONLY use DateTimeOriginal, check both main and sub-IFD
+                    date_str = None
+                    
+                    # First try to get from EXIF sub-directory (more reliable for HEIC)
+                    if exif_sub:
+                        date_str = exif_sub.get(36867)  # DateTimeOriginal in sub-IFD
+                    
+                    # Fallback to main EXIF data
+                    if not date_str:
+                        date_str = exif_data.get(36868)  # DateTimeOriginal in main EXIF
+                    
                     if date_str:
                         # Convert to string safely
                         date_string = self._convert_exif_value_to_string(date_str)
@@ -440,28 +492,64 @@ class MetadataExtractor:
                                 except ValueError:
                                     pass
                     
-                    # Technical info
-                    technical.iso = exif_data.get(34855)  # ISOSpeedRatings
-                    
-                    # Aperture
-                    fnumber = exif_data.get(33437)  # FNumber
-                    if fnumber and hasattr(fnumber, 'num') and hasattr(fnumber, 'den'):
-                        technical.aperture = float(fnumber.num) / float(fnumber.den)
-                    
-                    # Focal length
-                    focal_len = exif_data.get(37386)  # FocalLength
-                    if focal_len and hasattr(focal_len, 'num') and hasattr(focal_len, 'den'):
-                        technical.focal_length = float(focal_len.num) / float(focal_len.den)
-                    
-                    technical.focal_length_35mm = exif_data.get(41989)  # FocalLengthIn35mmFilm
-                    
-                    # Flash
-                    flash_data = exif_data.get(37385)  # Flash
-                    if flash_data is not None:
-                        technical.flash_fired = bool(flash_data & 1)
+                    # Technical info - check both main and sub-IFD
+                    if exif_sub:
+                        technical.iso = exif_sub.get(34855)  # ISOSpeedRatings
                         
-                    # Keywords (from UserComment or XPKeywords)
-                    user_comment = exif_data.get(37510)  # UserComment
+                        # Aperture
+                        fnumber = exif_sub.get(33437)  # FNumber
+                        if fnumber:
+                            if hasattr(fnumber, 'num') and hasattr(fnumber, 'den'):
+                                technical.aperture = float(fnumber.num) / float(fnumber.den)
+                            elif isinstance(fnumber, (int, float)):
+                                technical.aperture = float(fnumber)
+                        
+                        # Focal length
+                        focal_len = exif_sub.get(37386)  # FocalLength
+                        if focal_len:
+                            if hasattr(focal_len, 'num') and hasattr(focal_len, 'den'):
+                                technical.focal_length = float(focal_len.num) / float(focal_len.den)
+                            elif isinstance(focal_len, (int, float)):
+                                technical.focal_length = float(focal_len)
+                        
+                        technical.focal_length_35mm = exif_sub.get(41989)  # FocalLengthIn35mmFilm
+                        
+                        # Flash
+                        flash_data = exif_sub.get(37385)  # Flash
+                        if flash_data is not None:
+                            technical.flash_fired = bool(flash_data & 1)
+                    else:
+                        # Fallback to main EXIF data
+                        technical.iso = exif_data.get(34855)  # ISOSpeedRatings
+                        
+                        # Aperture
+                        fnumber = exif_data.get(33437)  # FNumber
+                        if fnumber and hasattr(fnumber, 'num') and hasattr(fnumber, 'den'):
+                            technical.aperture = float(fnumber.num) / float(fnumber.den)
+                        elif isinstance(fnumber, (int, float)):
+                            technical.aperture = float(fnumber)
+                        
+                        # Focal length
+                        focal_len = exif_data.get(37386)  # FocalLength
+                        if focal_len and hasattr(focal_len, 'num') and hasattr(focal_len, 'den'):
+                            technical.focal_length = float(focal_len.num) / float(focal_len.den)
+                        elif isinstance(focal_len, (int, float)):
+                            technical.focal_length = float(focal_len)
+                        
+                        technical.focal_length_35mm = exif_data.get(41989)  # FocalLengthIn35mmFilm
+                        
+                        # Flash
+                        flash_data = exif_data.get(37385)  # Flash
+                        if flash_data is not None:
+                            technical.flash_fired = bool(flash_data & 1)
+                        
+                    # Keywords (from UserComment or XPKeywords) - check both main and sub-IFD
+                    user_comment = None
+                    if exif_sub:
+                        user_comment = exif_sub.get(37510)  # UserComment
+                    if not user_comment:
+                        user_comment = exif_data.get(37510)  # UserComment
+                        
                     if user_comment:
                         # Convert to string if it's bytes or tuple
                         comment_str = self._convert_exif_value_to_string(user_comment)
@@ -470,7 +558,12 @@ class MetadataExtractor:
                     
                     if not keywords.keywords:
                         # Fallback to XPKeywords if UserComment does not exist or is empty
-                        xp_keywords = exif_data.get(42034)  # XPKeywords
+                        xp_keywords = None
+                        if exif_sub:
+                            xp_keywords = exif_sub.get(42034)  # XPKeywords
+                        if not xp_keywords:
+                            xp_keywords = exif_data.get(42034)  # XPKeywords
+                            
                         if xp_keywords:
                             # Convert to string if it's bytes or tuple
                             keywords_str = self._convert_exif_value_to_string(xp_keywords)
@@ -490,6 +583,15 @@ class MetadataExtractor:
     
     def _extract_with_exifread(self, photo_path: Path) -> PhotoMetadata:
         """Extract metadata using exifread."""
+        if not EXIF_AVAILABLE:
+            return PhotoMetadata(
+                camera=CameraInfo(),
+                dates=DateInfo(),
+                technical=TechnicalInfo(),
+                keywords=KeywordInfo(),
+                source_file=str(photo_path)
+            )
+            
         camera = CameraInfo()
         dates = DateInfo()
         technical = TechnicalInfo()
