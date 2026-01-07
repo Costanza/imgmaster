@@ -62,6 +62,7 @@ class Photo:
     SIDECAR_FORMATS = {
         '.xmp',    # Adobe XMP metadata
         '.xml',    # Generic XML metadata
+        '.aae',    # Apple Photos adjustment data
         '.thm',    # Thumbnail files (often from cameras)
         '.pp3',    # RawTherapee processing parameters
         '.dop',    # DxO Optics Pro settings
@@ -144,6 +145,10 @@ class Photo:
         # Store basename (filename without extension)
         self.basename = self.absolute_path.stem
         
+        # Normalize AAE file basenames (Apple adds rogue 'O' characters)
+        if self.absolute_path.suffix.lower() == '.aae':
+            self.basename = self._normalize_aae_basename(self.basename)
+        
         # Store extension (including the dot)
         self.extension = self.absolute_path.suffix.lower()
         
@@ -171,6 +176,33 @@ class Photo:
                 f"Unsupported image format: {self.extension}. "
                 f"Supported formats: {', '.join(sorted(self.get_all_supported_formats()))}"
             )
+
+    def _normalize_aae_basename(self, basename: str) -> str:
+        """
+        Normalize AAE sidecar file basenames.
+        
+        Apple Photos sometimes adds rogue 'O' characters to AAE filenames:
+        - IMG_O0220 -> IMG_0220 (O inserted after IMG_)
+        - IMG_0172 (1)O -> IMG_0172 (1) (trailing O suffix)
+        
+        Args:
+            basename: The original basename from the AAE filename
+            
+        Returns:
+            Normalized basename with rogue 'O' characters removed
+        """
+        import re
+        
+        # Remove 'O' immediately after 'IMG_' when followed by digits
+        # e.g., IMG_O0220 -> IMG_0220
+        normalized = re.sub(r'^(IMG_)O(\d)', r'\1\2', basename)
+        
+        # Remove trailing 'O' suffix
+        # e.g., IMG_0172 (1)O -> IMG_0172 (1)
+        if normalized.endswith('O'):
+            normalized = normalized[:-1]
+        
+        return normalized
     
     @property
     def is_jpeg(self) -> bool:
