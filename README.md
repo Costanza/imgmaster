@@ -125,8 +125,8 @@ uv run python main.py rename photos.json ~/Pictures/Organized \
 ## Naming Scheme Placeholders
 
 ### Date/Time
-- `{date}` - Date in YYYY-MM-DD format
-- `{datetime}` - Date and time in YYYY-MM-DD_HH-MM-SS format
+- `{date}` - Date in YYYYMMDD format
+- `{datetime}` - Date and time in YYYYMMDD_HHMMSS format
 - `{year}` - 4-digit year
 - `{month}` - 2-digit month  
 - `{day}` - 2-digit day
@@ -158,7 +158,7 @@ uv run python main.py rename photos.json ~/Pictures/Organized \
 uv run python main.py rename photos.json ~/Pictures/Organized \
   --scheme "{year}/{month}/{date}_{camera_model}_{sequence}"
 
-# Result: 2024/03/2024-03-15_Canon_EOS_R5_001.jpg
+# Result: 2024/03/20240315_Canon_EOS_R5_001.jpg
 ```
 
 ### Technical Photography Organization
@@ -176,7 +176,7 @@ uv run python main.py rename photos.json ~/Pictures/Technical \
 uv run python main.py rename photos.json ~/Pictures/Events \
   --scheme "{date}_{basename}"
 
-# Result: 2024-03-15_IMG_001.jpg
+# Result: 20240315_IMG_001.jpg
 ```
 
 ## Supported File Formats

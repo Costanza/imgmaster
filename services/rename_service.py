@@ -190,8 +190,8 @@ class PhotoRenameService:
         if dates and dates.date_taken:
             dt = dates.date_taken
             replacements = {
-                '{date}': dt.strftime('%Y-%m-%d'),
-                '{datetime}': dt.strftime('%Y-%m-%d_%H-%M-%S'),
+                '{date}': dt.strftime('%Y%m%d'),
+                '{datetime}': dt.strftime('%Y%m%d_%H%M%S'),
                 '{year}': dt.strftime('%Y'),
                 '{month}': dt.strftime('%m'),
                 '{day}': dt.strftime('%d'),
@@ -202,8 +202,8 @@ class PhotoRenameService:
         else:
             # Fallback to file modification time
             replacements = {
-                '{date}': mtime.strftime('%Y-%m-%d'),
-                '{datetime}': mtime.strftime('%Y-%m-%d_%H-%M-%S'),
+                '{date}': mtime.strftime('%Y%m%d'),
+                '{datetime}': mtime.strftime('%Y%m%d_%H%M%S'),
                 '{year}': mtime.strftime('%Y'),
                 '{month}': mtime.strftime('%m'),
                 '{day}': mtime.strftime('%d'),
