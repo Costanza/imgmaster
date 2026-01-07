@@ -181,14 +181,14 @@ class PhotoRenameService:
         # File modification time as fallback
         mtime = datetime.fromtimestamp(photo.absolute_path.stat().st_mtime)
         
-        # Basic metadata
-        basic = group_metadata.basic if hasattr(group_metadata, 'basic') else None
+        # Date metadata
+        dates = group_metadata.dates if hasattr(group_metadata, 'dates') else None
         camera = group_metadata.camera if hasattr(group_metadata, 'camera') else None
         technical = group_metadata.technical if hasattr(group_metadata, 'technical') else None
         
         # Date/time replacements
-        if basic and basic.date_taken:
-            dt = basic.date_taken
+        if dates and dates.date_taken:
+            dt = dates.date_taken
             replacements = {
                 '{date}': dt.strftime('%Y-%m-%d'),
                 '{datetime}': dt.strftime('%Y-%m-%d_%H-%M-%S'),

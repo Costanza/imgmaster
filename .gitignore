@@ -14,3 +14,5 @@ test_data/
 *.json
 out.txt
 demo.py
+build_*.txt
+rename_*.txt

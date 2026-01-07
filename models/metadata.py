@@ -406,7 +406,8 @@ class MetadataExtractor:
                 'exif': 'http://ns.adobe.com/exif/1.0/',
                 'tiff': 'http://ns.adobe.com/tiff/1.0/',
                 'xmp': 'http://ns.adobe.com/xap/1.0/',
-                'aux': 'http://ns.adobe.com/exif/1.0/aux/'
+                'aux': 'http://ns.adobe.com/exif/1.0/aux/',
+                'photoshop': 'http://ns.adobe.com/photoshop/1.0/'
             }
             
             # Extract camera info
@@ -415,8 +416,15 @@ class MetadataExtractor:
             camera.lens_model = self._get_xmp_value(root, './/aux:Lens', namespaces)
             camera.serial_number = self._get_xmp_value(root, './/aux:SerialNumber', namespaces)
             
-            # Extract date info
+            # Extract date info - try multiple sources in priority order
             date_str = self._get_xmp_value(root, './/exif:DateTimeOriginal', namespaces)
+            if not date_str:
+                # Fallback to photoshop:DateCreated (common in Adobe tools)
+                date_str = self._get_xmp_value(root, './/photoshop:DateCreated', namespaces)
+            if not date_str:
+                # Fallback to xmp:CreateDate
+                date_str = self._get_xmp_value(root, './/xmp:CreateDate', namespaces)
+            
             if date_str:
                 try:
                     # XMP dates are usually in ISO format
