@@ -92,3 +92,65 @@ class PresentationService:
     def show_processing_message(message: str) -> None:
         """Display a processing message."""
         click.echo(message)
+
+    @staticmethod
+    def show_validation_results(results: Dict[str, Any]) -> None:
+        """Display the results of a validation operation."""
+        if results.get('no_photos_found'):
+            click.echo("No photos found in the specified directory.")
+            return
+
+        click.echo(f"\nValidation Summary:")
+        click.echo(f"Total groups scanned: {results['total_groups']}")
+        click.echo(f"OK: {results['ok_count']}")
+        click.echo(f"Mismatches: {results['mismatch_count']}")
+        click.echo(f"Unknown: {results['unknown_count']}")
+
+        if not results['groups']:
+            click.echo("\nNo groups to display.")
+            return
+
+        click.echo(f"\n{'='*60}")
+
+        for group in results['groups']:
+            PresentationService._show_group_validation(group)
+
+        click.echo(f"{'='*60}")
+
+        if results['mismatch_count'] > 0:
+            click.echo(f"\n⚠️  {results['mismatch_count']} group(s) have date mismatches")
+        else:
+            click.echo(f"\n✅ All groups validated successfully!")
+
+    @staticmethod
+    def _show_group_validation(group: Dict[str, Any]) -> None:
+        """Display validation details for a single group."""
+        # Status indicator
+        if group['status'] == 'OK':
+            status_icon = '✓'
+            status_color = 'green'
+        elif group['status'] == 'MISMATCH':
+            status_icon = '✗'
+            status_color = 'red'
+        else:
+            status_icon = '?'
+            status_color = 'yellow'
+
+        click.echo(f"\nGroup: {group['basename']}")
+        click.echo(f"  Current filename: {group.get('current_filename', group['basename'])}")
+        click.echo(f"  Files: {', '.join(group['files'])}")
+
+        # Date sources
+        if group['date_sources']:
+            click.echo(f"  Date Sources:")
+            for source in group['date_sources']:
+                click.echo(f"    - {source['file']} ({source['source']}): {source['date']}")
+
+        # Comparison
+        click.echo(f"  Filename date: {group['filename_date'] or 'N/A'}")
+        click.echo(f"  Metadata date: {group['metadata_date'] or 'N/A'}")
+        if group.get('metadata_datetime'):
+            click.echo(f"  Metadata datetime: {group['metadata_datetime']}")
+
+        # Status
+        click.secho(f"  Status: {status_icon} {group['status']} - {group['message']}", fg=status_color)

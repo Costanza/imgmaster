@@ -4,7 +4,7 @@ import click
 import sys
 from pathlib import Path
 
-from services import DatabaseBuildService, PhotoRenameService, PresentationService, LoggingService
+from services import DatabaseBuildService, PhotoRenameService, ValidationService, PresentationService, LoggingService
 
 
 @click.group()
@@ -141,6 +141,57 @@ def rename(database: Path, destination: Path, scheme: str, sequence_digits: int,
     except ValueError as e:
         PresentationService.show_error(f"Invalid naming scheme: {e}")
         sys.exit(1)
+    except FileNotFoundError as e:
+        PresentationService.show_error(str(e))
+        sys.exit(1)
+    except PermissionError as e:
+        PresentationService.show_error(f"Permission error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        PresentationService.show_error(f"Unexpected error: {e}")
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument('root_folder', type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path))
+@click.option('--errors-only', is_flag=True, default=False,
+              help='Only show groups with date mismatches (default: show all)')
+@click.option('--verbose', '-v', is_flag=True,
+              help='Enable verbose logging')
+def validate(root_folder: Path, errors_only: bool, verbose: bool):
+    """
+    Validate photo file names against their metadata dates.
+
+    Scans the ROOT_FOLDER for photo files, extracts metadata, and checks
+    if the filenames contain the correct date based on the photo's
+    date taken metadata.
+
+    This is useful for verifying that renamed photos have the correct
+    dates in their filenames.
+
+    \b
+    Expected filename format: YYYYMMDD_* (e.g., 20250315_0001.jpg)
+
+    \b
+    Status indicators:
+      OK       - Filename date matches metadata date
+      MISMATCH - Filename date differs from metadata date
+      UNKNOWN  - Could not determine date from filename or metadata
+    """
+    # Set up logging
+    LoggingService.setup_logging(verbose)
+
+    # Show initial message
+    PresentationService.show_processing_message(f"Validating photos in: {root_folder}")
+
+    try:
+        # Validate photos using service
+        validation_service = ValidationService()
+        results = validation_service.validate_photos(root_folder, errors_only)
+
+        # Show results
+        PresentationService.show_validation_results(results)
+
     except FileNotFoundError as e:
         PresentationService.show_error(str(e))
         sys.exit(1)
